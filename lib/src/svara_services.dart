@@ -80,10 +80,8 @@ class SvaraServices {
       };
       _send(SvaraSyncType.createRoom, data);
       _channel!.stream.listen(_onMessage, onDone: () {
-        print("WebSocket connection closed. Attempting to reconnect...");
 
       }, onError:  (error) {
-        print("WebSocket error: $error. Attempting to reconnect...");
 
       },
       );
@@ -109,9 +107,7 @@ class SvaraServices {
       _localStream = null;
       _channel?.sink.close(normalClosure);
       _channel = null;
-      print('Disconnecting from room');
     } catch (e) {
-      print('Failed to leave $e');
     }
   }
 
@@ -204,7 +200,6 @@ class SvaraServices {
   }
 
   void _manageReceiveMessage(Map<String, dynamic> data) {
-    print(data);
     _eventHandler!.receivedMessage(data);
   }
 
@@ -224,7 +219,6 @@ class SvaraServices {
       _sendTransport = null;
       svaraUserData!.value.isProducer = false;
     } catch (e) {
-      print("Failed to close _senderTransport $e");
     }
   }
 
@@ -268,7 +262,6 @@ class SvaraServices {
       var routerRtpCapabilities =
           RtpCapabilities.fromMap(data[SvaraKeys.routerRtpCapabilities]);
       await device.load(routerRtpCapabilities: routerRtpCapabilities);
-      print('loaded rtp Capabilities');
 
       Map<String, dynamic> createTransportData = {
         SvaraKeys.sctpCapabilities: device.sctpCapabilities.toMap(),
@@ -276,20 +269,17 @@ class SvaraServices {
       };
       _send(SvaraSyncType.createTransport, createTransportData);
     } catch (e) {
-      print('Failed in setting RouterRtpCapabilities');
       leaveRoom('client');
     }
   }
 
   void _consumerCallback(Consumer consumer, var arguments) {
     /* Your code. */
-    print('New consumer created: ${consumer.id}');
   }
 
   void _producerCallback(Producer producer) {
     /* Your code. */
 
-    print('New producer created: ${producer.id}');
   }
 
   Future<void> _produced() async {
@@ -318,19 +308,14 @@ class SvaraServices {
   }
 
   Future<void> _connectingTransport(Map<String, dynamic> data) async {
-    print(
-        'connectingTransport ${svaraUserData!.value.isProducer && _sendTransport == null}');
-    print('${svaraUserData!.value.isConsumer && _recTransport == null}');
     if (svaraUserData!.value.isProducer && _sendTransport == null) {
       _sendTransport = device.createSendTransportFromMap(
         data[SvaraKeys.producerTransport],
         producerCallback: _producerCallback,
       );
-      print('Transport created ${_sendTransport!.id}');
 
       _sendTransport!.on(SvaraKeys.connect, (Map data) async {
         try {
-          print(' creating transport: ${data['dtlsParameters'].toMap()}');
 
           Map<String, dynamic> connectProducerTransportData = {
             SvaraKeys.transportId: _sendTransport!.id,
@@ -340,16 +325,13 @@ class SvaraServices {
           _send(SvaraSyncType.connectProducerTransport,
               connectProducerTransportData);
 
-          print(' created transport: ');
 
           data['callback']();
         } catch (error) {
-          print('Error creating transport: $error');
         }
       });
       _sendTransport!.on(SvaraKeys.produce, (Map data) async {
         try {
-          print('_transportProduced $data');
 
           Map<String, dynamic> produceData = {
             SvaraKeys.transportId: _sendTransport!.id,
@@ -363,7 +345,6 @@ class SvaraServices {
           data['callback']();
         } catch (error) {
           data['errback'](error);
-          print("_transportProducing error $error");
         }
       });
       _produced();
@@ -375,7 +356,6 @@ class SvaraServices {
 
       _recTransport!.on(SvaraKeys.connect, (Map data) async {
         try {
-          print('recverConnected');
 
           Map<String, dynamic> consumerTransportData = {
             SvaraKeys.transportId: _recTransport!.id,
@@ -412,9 +392,7 @@ class SvaraServices {
         // appData: data['appData'],
         peerId: svaraUserData!.value.svaraUserId,
       );
-      print('Added consume');
     } catch (e) {
-      print('Error handling consumed message: $e');
     }
   }
 
