@@ -12,12 +12,13 @@ dependencies:
   dio: ^5.4.3+1
   flutter:
     sdk: flutter
-  flutter_webrtc: ^0.11.6+hotfix.1
-  get: ^4.6.6
-  mediasfu_mediasoup_client:
-    path: lib/src/mediasfu_mediasoup_client
+  flutter_webrtc: ^0.12.12+hotfix.1
+  get: ^4.7.2
+#  mediasfu_mediasoup_client:
+#    path: lib/src/mediasfu_mediasoup_client
   permission_handler: ^11.4.0
-  web_socket_channel: ^3.0.1
+  web_socket_channel: ^3.0.2
+  mediasfu_mediasoup_client: ^0.0.7
   
 
 dev_dependencies:
