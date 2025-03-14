@@ -7,10 +7,10 @@
 library;
 
 // Export avion module
-export 'src/avion/avion_collection.dart';
-export 'src/avion/avion_event_handler.dart';
-export 'src/avion/avion_services.dart';
-export 'src/avion/avion_user_data.dart';
+export 'src/svara_collection.dart';
+export 'src/svara_event_handler.dart';
+export 'src/svara_services.dart';
+export 'src/svara_user_data.dart';
 
 // Export mediasfu module (wrapper)
 //export 'src/mediasfu/mediasoup_client.dart';

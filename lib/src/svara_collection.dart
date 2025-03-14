@@ -1,4 +1,4 @@
-class AvionKeys{
+class SvaraKeys{
   static const String appId= 'app_id';
   static const String type= 'type';
   static const String editor= 'editor';
@@ -22,17 +22,17 @@ class AvionKeys{
   static const String id='id';
   static const String producerId='producer_id';
   static const String peerId='peer_id';
-  static const String avionUserId='avion_user_id';
-  static const String avionUser='avion_user';
+  static const String svaraUserId='svara_user_id';
+  static const String svaraUser='svara_user';
   static const String mute='mute';
   static const String isMute='is_mute';
   static const String producerTransport='producer_transport';
   static const String consumerTransport='consumer_transport';
 }
 
-const String serverAvionUrl= 'wss://meet.svara.live';
+const String serverSvaraUrl= 'wss://meet.svara.live';
 
-class AvionSyncType{
+class SvaraSyncType{
   static const String joinRoom= 'join_room';
 
   static const String createRoom= 'create_room';

@@ -1,45 +1,45 @@
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:mediasfu_mediasoup_client/mediasfu_mediasoup_client.dart';
-import 'package:svara_flutter_sdk/src/avion/avion_event_handler.dart';
-import 'package:svara_flutter_sdk/src/avion/avion_user_data.dart';
+import 'package:svara_flutter_sdk/src/svara_event_handler.dart';
+import 'package:svara_flutter_sdk/src/svara_user_data.dart';
 import 'package:web_socket_channel/status.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'avion_collection.dart';
+import 'svara_collection.dart';
 
-class AvionServices {
-  static final AvionServices _instance = AvionServices._internal();
+class SvaraServices {
+  static final SvaraServices _instance = SvaraServices._internal();
   WebSocketChannel? _channel;
   Device device = Device();
   Transport? _sendTransport;
   Transport? _recTransport;
   rtc.RTCVideoRenderer localRenderer = rtc.RTCVideoRenderer();
   rtc.MediaStream? _localStream;
-  Rx<AvionUserData>? avionUserData;
+  Rx<SvaraUserData>? svaraUserData;
 
-  AvionServices._internal();
+  SvaraServices._internal();
 
-  factory AvionServices() {
+  factory SvaraServices() {
     return _instance;
   }
 
   String? appId;
   String? secretKey;
-  AvionEventHandler? _eventHandler;
+  SvaraEventHandler? _eventHandler;
 
-  void _setEventHandler(AvionEventHandler eventHandler) {
+  void _setEventHandler(SvaraEventHandler eventHandler) {
     _eventHandler = eventHandler;
   }
 
-  void create(String appId,String secretKey, AvionEventHandler evenHandler) {
+  void create(String appId,String secretKey, SvaraEventHandler evenHandler) {
     this.appId = appId;
     this.secretKey = secretKey;
     _setEventHandler(evenHandler);
   }
 
   void _send(String type, Map<dynamic, dynamic> data) {
-    final message = jsonEncode({AvionKeys.type: type, AvionKeys.data: data});
+    final message = jsonEncode({SvaraKeys.type: type, SvaraKeys.data: data});
     _channel?.sink.add(message);
   }
 
@@ -49,20 +49,20 @@ class AvionServices {
 
     if (appId != null) {
       _channel = WebSocketChannel.connect(
-        Uri.parse(serverAvionUrl),
+        Uri.parse(serverSvaraUrl),
         protocols: [appId!,secretKey!],
       );
       Map<String, dynamic> data = {
-        AvionKeys.roomId: roomId,
-        AvionKeys.userData: userData,
-        AvionKeys.isMute: false,
-        AvionKeys.isConsumer: isConsumer,
-        AvionKeys.isProducer: isProducer,
+        SvaraKeys.roomId: roomId,
+        SvaraKeys.userData: userData,
+        SvaraKeys.isMute: false,
+        SvaraKeys.isConsumer: isConsumer,
+        SvaraKeys.isProducer: isProducer,
       };
-      _send(AvionSyncType.joinRoom, data);
+      _send(SvaraSyncType.joinRoom, data);
       _channel!.stream.listen(_onMessage);
     } else {
-      throw "Create the Avion Service";
+      throw "Create the Svara Service";
     }
   }
 
@@ -72,13 +72,13 @@ class AvionServices {
     if (appId != null) {
 
       _channel = WebSocketChannel.connect(
-        Uri.parse(serverAvionUrl),
+        Uri.parse(serverSvaraUrl),
         protocols: [appId!,secretKey!],
       );
       Map<String, dynamic> data = {
-        AvionKeys.userData: userData,
+        SvaraKeys.userData: userData,
       };
-      _send(AvionSyncType.createRoom, data);
+      _send(SvaraSyncType.createRoom, data);
       _channel!.stream.listen(_onMessage, onDone: () {
         print("WebSocket connection closed. Attempting to reconnect...");
 
@@ -88,7 +88,7 @@ class AvionServices {
       },
       );
     } else {
-      throw "Create the Avion Service";
+      throw "Create the Svara Service";
     }
   }
 
@@ -116,7 +116,7 @@ class AvionServices {
   }
 
   void leaveRoom(String reason) {
-    _send(AvionSyncType.leaveRoom, {AvionKeys.editor: reason});
+    _send(SvaraSyncType.leaveRoom, {SvaraKeys.editor: reason});
     endOperations();
   }
 
@@ -126,79 +126,79 @@ class AvionServices {
   }
 
   void removeUser(String removingUserId) {
-    _send(AvionSyncType.removeUser, {AvionKeys.avionUserId: removingUserId});
+    _send(SvaraSyncType.removeUser, {SvaraKeys.svaraUserId: removingUserId});
   }
 
-  void updateUserData(String avionUserId, Map<String, dynamic> me) {
-    _send(AvionSyncType.updateUserData,
-        {AvionKeys.userData: me, AvionKeys.avionUserId: avionUserId});
+  void updateUserData(String svaraUserId, Map<String, dynamic> me) {
+    _send(SvaraSyncType.updateUserData,
+        {SvaraKeys.userData: me, SvaraKeys.svaraUserId: svaraUserId});
   }
 
   void _onMessage(dynamic message) async {
     final decodedMessage = json.decode(message);
-   // printLongString("Received Avion Connection Response: $message");
-    switch (decodedMessage[AvionKeys.type]) {
-      case AvionSyncType.routerRtpCapabilities:
+   // printLongString("Received Svara Connection Response: $message");
+    switch (decodedMessage[SvaraKeys.type]) {
+      case SvaraSyncType.routerRtpCapabilities:
 
         ///Receives Rtp Capabilities from serve
         ///load it into the device and send device sctpCapabilities with weather producing or consuming
-        await _setRouterRtpCapabilities(decodedMessage[AvionKeys.data]);
+        await _setRouterRtpCapabilities(decodedMessage[SvaraKeys.data]);
         break;
-      case AvionSyncType.createdRoom:
-        _manageOnRoomCreated(decodedMessage[AvionKeys.data]);
+      case SvaraSyncType.createdRoom:
+        _manageOnRoomCreated(decodedMessage[SvaraKeys.data]);
         break;
-      case AvionSyncType.onUserJoined:
-        _manageOnUserJoined(decodedMessage[AvionKeys.data]);
+      case SvaraSyncType.onUserJoined:
+        _manageOnUserJoined(decodedMessage[SvaraKeys.data]);
         break;
-      case AvionSyncType.createdTransport:
+      case SvaraSyncType.createdTransport:
 
         ///Called when a producerTransport is created
-        await _connectingTransport(decodedMessage[AvionKeys.data]);
+        await _connectingTransport(decodedMessage[SvaraKeys.data]);
         break;
-      case AvionSyncType.connectedConsumerTransport:
+      case SvaraSyncType.connectedConsumerTransport:
 
         ///Called when a consumerTransport is created
-        await _consumedProducers(decodedMessage[AvionKeys.data]);
+        await _consumedProducers(decodedMessage[SvaraKeys.data]);
         break;
-      case AvionSyncType.connectedProducerTransport:
+      case SvaraSyncType.connectedProducerTransport:
 
         ///Called when a ProducerTransport is created
         break;
-      case AvionSyncType.usersList:
-        _manageUserList(decodedMessage[AvionKeys.data]);
+      case SvaraSyncType.usersList:
+        _manageUserList(decodedMessage[SvaraKeys.data]);
         break;
-      case AvionSyncType.newUserJoined:
-        _manageNewUserJoined(decodedMessage[AvionKeys.data]);
+      case SvaraSyncType.newUserJoined:
+        _manageNewUserJoined(decodedMessage[SvaraKeys.data]);
         break;
-      case AvionSyncType.newProducerUser:
-        await _newProducerHandling(decodedMessage[AvionKeys.data]);
+      case SvaraSyncType.newProducerUser:
+        await _newProducerHandling(decodedMessage[SvaraKeys.data]);
         break;
-      case AvionSyncType.userDataUpdated:
-        _manageUserDataUpdated(decodedMessage[AvionKeys.data]);
+      case SvaraSyncType.userDataUpdated:
+        _manageUserDataUpdated(decodedMessage[SvaraKeys.data]);
         break;
-      case AvionSyncType.newConsumerUser:
-        await _newConsumerHandling(decodedMessage[AvionKeys.data]);
+      case SvaraSyncType.newConsumerUser:
+        await _newConsumerHandling(decodedMessage[SvaraKeys.data]);
         break;
-      case AvionSyncType.muteUnMuteCallback:
-        _manageMuteUnMuteCallback(decodedMessage[AvionKeys.data]);
+      case SvaraSyncType.muteUnMuteCallback:
+        _manageMuteUnMuteCallback(decodedMessage[SvaraKeys.data]);
         break;
-      case AvionSyncType.userLeavedRoom:
-        _manageUserLeavedRoom(decodedMessage[AvionKeys.data]);
+      case SvaraSyncType.userLeavedRoom:
+        _manageUserLeavedRoom(decodedMessage[SvaraKeys.data]);
         break;
-      case AvionSyncType.removeMe:
-        _manageRemoveMe(decodedMessage[AvionKeys.data]);
+      case SvaraSyncType.removeMe:
+        _manageRemoveMe(decodedMessage[SvaraKeys.data]);
         break;
-      case AvionSyncType.receiveTextMessage:
-        _manageReceiveMessage(decodedMessage[AvionKeys.data]);
+      case SvaraSyncType.receiveTextMessage:
+        _manageReceiveMessage(decodedMessage[SvaraKeys.data]);
         break;
-      case AvionSyncType.roomEnded:
+      case SvaraSyncType.roomEnded:
         _manageRoomEnded();
         break;
-      case AvionSyncType.error:
-        _manageError(decodedMessage[AvionKeys.data]);
+      case SvaraSyncType.error:
+        _manageError(decodedMessage[SvaraKeys.data]);
         break;
-      case AvionSyncType.warn:
-        _manageWarn(decodedMessage[AvionKeys.data]);
+      case SvaraSyncType.warn:
+        _manageWarn(decodedMessage[SvaraKeys.data]);
         break;
     }
   }
@@ -210,19 +210,19 @@ class AvionServices {
 
   void _manageRemoveMe(Map<String, dynamic> data) {
     _eventHandler!.onRemoved();
-    leaveRoom(data[AvionKeys.editor]);
+    leaveRoom(data[SvaraKeys.editor]);
   }
 
   void removeProducer() {
     try {
       Map<String, dynamic> sendingData = {
-        AvionKeys.avionUserId: avionUserData!.value.avionUserId,
-        AvionKeys.producerId: _sendTransport!.id,
+        SvaraKeys.svaraUserId: svaraUserData!.value.SvaraUserId,
+        SvaraKeys.producerId: _sendTransport!.id,
       };
-      _send(AvionSyncType.removeProducer, sendingData);
+      _send(SvaraSyncType.removeProducer, sendingData);
       _sendTransport!.close();
       _sendTransport = null;
-      avionUserData!.value.isProducer = false;
+      svaraUserData!.value.isProducer = false;
     } catch (e) {
       print("Failed to close _senderTransport $e");
     }
@@ -230,51 +230,51 @@ class AvionServices {
 
   void muteMic() {
     Map<String, dynamic> muteUserData = {
-      AvionKeys.isMute: true,
+      SvaraKeys.isMute: true,
     };
-    avionUserData!.value.isMute.value = true;
+    svaraUserData!.value.isMute.value = true;
     _localStream!.getAudioTracks().first.enabled = false;
-    _send(AvionSyncType.muteUnMuteUser, muteUserData);
+    _send(SvaraSyncType.muteUnMuteUser, muteUserData);
   }
 
   void unMuteMic() {
     Map<String, dynamic> muteUserData = {
-      AvionKeys.isMute: false,
+      SvaraKeys.isMute: false,
     };
-    avionUserData!.value.isMute.value = false;
+    svaraUserData!.value.isMute.value = false;
     _localStream!.getAudioTracks().first.enabled = true;
-    _send(AvionSyncType.muteUnMuteUser, muteUserData);
+    _send(SvaraSyncType.muteUnMuteUser, muteUserData);
   }
 
   void createProducerTransport() {
-    avionUserData!.value.isProducer = true;
+    svaraUserData!.value.isProducer = true;
     Map<String, dynamic> createTransportData = {
-      AvionKeys.sctpCapabilities: device.sctpCapabilities.toMap(),
-      AvionKeys.rtpCapabilities: device.rtpCapabilities.toMap()
+      SvaraKeys.sctpCapabilities: device.sctpCapabilities.toMap(),
+      SvaraKeys.rtpCapabilities: device.rtpCapabilities.toMap()
     };
-    _send(AvionSyncType.createProducerTransport, createTransportData);
+    _send(SvaraSyncType.createProducerTransport, createTransportData);
   }
 
   void getUserList() {
-    _send(AvionSyncType.getUsersList, {});
+    _send(SvaraSyncType.getUsersList, {});
   }
 
   void endRoom() {
-    _send(AvionSyncType.endRoom, {});
+    _send(SvaraSyncType.endRoom, {});
   }
 
   Future<void> _setRouterRtpCapabilities(Map<String, dynamic> data) async {
     try {
       var routerRtpCapabilities =
-          RtpCapabilities.fromMap(data[AvionKeys.routerRtpCapabilities]);
+          RtpCapabilities.fromMap(data[SvaraKeys.routerRtpCapabilities]);
       await device.load(routerRtpCapabilities: routerRtpCapabilities);
       print('loaded rtp Capabilities');
 
       Map<String, dynamic> createTransportData = {
-        AvionKeys.sctpCapabilities: device.sctpCapabilities.toMap(),
-        AvionKeys.rtpCapabilities: device.rtpCapabilities.toMap()
+        SvaraKeys.sctpCapabilities: device.sctpCapabilities.toMap(),
+        SvaraKeys.rtpCapabilities: device.rtpCapabilities.toMap()
       };
-      _send(AvionSyncType.createTransport, createTransportData);
+      _send(SvaraSyncType.createTransport, createTransportData);
     } catch (e) {
       print('Failed in setting RouterRtpCapabilities');
       leaveRoom('client');
@@ -319,25 +319,25 @@ class AvionServices {
 
   Future<void> _connectingTransport(Map<String, dynamic> data) async {
     print(
-        'connectingTransport ${avionUserData!.value.isProducer && _sendTransport == null}');
-    print('${avionUserData!.value.isConsumer && _recTransport == null}');
-    if (avionUserData!.value.isProducer && _sendTransport == null) {
+        'connectingTransport ${svaraUserData!.value.isProducer && _sendTransport == null}');
+    print('${svaraUserData!.value.isConsumer && _recTransport == null}');
+    if (svaraUserData!.value.isProducer && _sendTransport == null) {
       _sendTransport = device.createSendTransportFromMap(
-        data[AvionKeys.producerTransport],
+        data[SvaraKeys.producerTransport],
         producerCallback: _producerCallback,
       );
       print('Transport created ${_sendTransport!.id}');
 
-      _sendTransport!.on(AvionKeys.connect, (Map data) async {
+      _sendTransport!.on(SvaraKeys.connect, (Map data) async {
         try {
           print(' creating transport: ${data['dtlsParameters'].toMap()}');
 
           Map<String, dynamic> connectProducerTransportData = {
-            AvionKeys.transportId: _sendTransport!.id,
-            AvionKeys.dtlsParameters: data['dtlsParameters'].toMap(),
+            SvaraKeys.transportId: _sendTransport!.id,
+            SvaraKeys.dtlsParameters: data['dtlsParameters'].toMap(),
           };
 
-          _send(AvionSyncType.connectProducerTransport,
+          _send(SvaraSyncType.connectProducerTransport,
               connectProducerTransportData);
 
           print(' created transport: ');
@@ -347,18 +347,18 @@ class AvionServices {
           print('Error creating transport: $error');
         }
       });
-      _sendTransport!.on(AvionKeys.produce, (Map data) async {
+      _sendTransport!.on(SvaraKeys.produce, (Map data) async {
         try {
           print('_transportProduced $data');
 
           Map<String, dynamic> produceData = {
-            AvionKeys.transportId: _sendTransport!.id,
-            AvionKeys.kind: data['kind'],
-            AvionKeys.rtpParameters: data['rtpParameters'].toMap(),
+            SvaraKeys.transportId: _sendTransport!.id,
+            SvaraKeys.kind: data['kind'],
+            SvaraKeys.rtpParameters: data['rtpParameters'].toMap(),
             if (data['appData'] != null)
-              AvionKeys.appData: Map<String, dynamic>.from(data['appData'])
+              SvaraKeys.appData: Map<String, dynamic>.from(data['appData'])
           };
-          _send(AvionSyncType.produce, produceData);
+          _send(SvaraSyncType.produce, produceData);
 
           data['callback']();
         } catch (error) {
@@ -368,20 +368,20 @@ class AvionServices {
       });
       _produced();
     }
-    if (avionUserData!.value.isConsumer && _recTransport == null) {
+    if (svaraUserData!.value.isConsumer && _recTransport == null) {
       _recTransport = device.createRecvTransportFromMap(
-          data[AvionKeys.consumerTransport],
+          data[SvaraKeys.consumerTransport],
           consumerCallback: _consumerCallback);
 
-      _recTransport!.on(AvionKeys.connect, (Map data) async {
+      _recTransport!.on(SvaraKeys.connect, (Map data) async {
         try {
           print('recverConnected');
 
           Map<String, dynamic> consumerTransportData = {
-            AvionKeys.transportId: _recTransport!.id,
-            AvionKeys.dtlsParameters: data['dtlsParameters'].toMap(),
+            SvaraKeys.transportId: _recTransport!.id,
+            SvaraKeys.dtlsParameters: data['dtlsParameters'].toMap(),
           };
-          _send(AvionSyncType.connectConsumerTransport, consumerTransportData);
+          _send(SvaraSyncType.connectConsumerTransport, consumerTransportData);
         //  print('recverConnected done');
           data['callback']();
         } catch (error) {
@@ -390,13 +390,13 @@ class AvionServices {
         }
       });
 
-      _send(AvionSyncType.connectEarlierProducer, {});
+      _send(SvaraSyncType.connectEarlierProducer, {});
       //print('Receiving transport created');
     }
   }
 
   Future<void> _consumedProducers(Map<String, dynamic> data) async {
-    List<dynamic> producersList = data[AvionKeys.producerList];
+    List<dynamic> producersList = data[SvaraKeys.producerList];
     for (var producer in producersList) {
       _consume(producer);
     }
@@ -405,12 +405,12 @@ class AvionServices {
   void _consume(var producer) {
     try {
       _recTransport!.consume(
-        id: producer[AvionKeys.id],
-        producerId: producer[AvionKeys.producerId],
+        id: producer[SvaraKeys.id],
+        producerId: producer[SvaraKeys.producerId],
         kind: RTCRtpMediaType.RTCRtpMediaTypeAudio,
-        rtpParameters: RtpParameters.fromMap(producer[AvionKeys.rtpParameters]),
+        rtpParameters: RtpParameters.fromMap(producer[SvaraKeys.rtpParameters]),
         // appData: data['appData'],
-        peerId: avionUserData!.value.avionUserId,
+        peerId: svaraUserData!.value.SvaraUserId,
       );
       print('Added consume');
     } catch (e) {
@@ -419,36 +419,36 @@ class AvionServices {
   }
 
   Future<void> _newProducerHandling(Map<String, dynamic> data) async {
-    _consume(data[AvionKeys.producers]);
+    _consume(data[SvaraKeys.producers]);
   }
 
   Future<void> _newConsumerHandling(Map<String, dynamic> data) async {}
 
   void _manageMuteUnMuteCallback(Map<String, dynamic> data) {
     _eventHandler!
-        .onUserMuteUnmute(data[AvionKeys.avionUserId], data[AvionKeys.isMute]);
+        .onUserMuteUnmute(data[SvaraKeys.svaraUserId], data[SvaraKeys.isMute]);
   }
 
   void _manageUserLeavedRoom(Map<String, dynamic> data) {
-    _eventHandler!.onUserLeft(data[AvionKeys.avionUserId]);
+    _eventHandler!.onUserLeft(data[SvaraKeys.svaraUserId]);
   }
 
   void _manageOnRoomCreated(Map<String, dynamic> data) {
-    avionUserData = AvionUserData.fromJson(data[AvionKeys.userData]).obs;
-    _eventHandler!.onUserJoined(avionUserData!.value);
-    _eventHandler!.onRoomCreated(data[AvionKeys.roomId]);
+    svaraUserData = SvaraUserData.fromJson(data[SvaraKeys.userData]).obs;
+    _eventHandler!.onUserJoined(svaraUserData!.value);
+    _eventHandler!.onRoomCreated(data[SvaraKeys.roomId]);
   }
 
   void _manageNewUserJoined(Map<String, dynamic> data) {
     _eventHandler!
-        .onNewUserJoined(AvionUserData.fromJson(data[AvionKeys.userData]));
+        .onNewUserJoined(SvaraUserData.fromJson(data[SvaraKeys.userData]));
   }
 
   void _manageUserList(Map<String, dynamic> data) {
-    List<AvionUserData> avionUsers = (data['user_list'] as List<dynamic>)
-        .map((item) => AvionUserData.fromJson(item as Map<String, dynamic>))
+    List<SvaraUserData> svaraUsers = (data['user_list'] as List<dynamic>)
+        .map((item) => SvaraUserData.fromJson(item as Map<String, dynamic>))
         .toList();
-    _eventHandler!.onUserGetList(avionUsers);
+    _eventHandler!.onUserGetList(svaraUsers);
   }
 
   void _manageError(Map<String, dynamic> data) {
@@ -462,19 +462,19 @@ class AvionServices {
   }
 
   void _manageOnUserJoined(Map<String, dynamic> data) {
-    avionUserData = AvionUserData.fromJson(data[AvionKeys.userData]).obs;
-    _eventHandler!.onUserJoined(avionUserData!.value);
+    svaraUserData = SvaraUserData.fromJson(data[SvaraKeys.userData]).obs;
+    _eventHandler!.onUserJoined(svaraUserData!.value);
   }
 
   void sendMsg(Map<String, dynamic> msgData) {
-    _send(AvionSyncType.sendTextMessage, msgData);
+    _send(SvaraSyncType.sendTextMessage, msgData);
   }
 
   void _manageUserDataUpdated(Map<String, dynamic> data) {
-    AvionUserData userData = AvionUserData.fromJson(data[AvionKeys.avionUser]);
-    bool isItMe = avionUserData!.value.avionUserId == userData.avionUserId;
+    SvaraUserData userData = SvaraUserData.fromJson(data[SvaraKeys.svaraUser]);
+    bool isItMe = svaraUserData!.value.SvaraUserId == userData.SvaraUserId;
     if (isItMe) {
-      avionUserData!.value.userData.value = userData.userData;
+      svaraUserData!.value.userData.value = userData.userData;
     }
     _eventHandler!.onUserDataChanged(userData, isItMe);
   }
