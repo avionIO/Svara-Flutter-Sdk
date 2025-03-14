@@ -221,6 +221,7 @@ class SvaraServices {
       _sendTransport = null;
       svaraUserData!.value.isProducer = false;
     } catch (e) {
+      // EMPTY CATCH BLOCK
     }
   }
 
@@ -330,6 +331,7 @@ class SvaraServices {
 
           data['callback']();
         } catch (error) {
+          // EMPTY CATCH BLOCK
         }
       });
       _sendTransport!.on(SvaraKeys.produce, (Map data) async {
@@ -395,6 +397,7 @@ class SvaraServices {
         peerId: svaraUserData!.value.svaraUserId,
       );
     } catch (e) {
+      // EMPTY CATCH BLOCK
     }
   }
 
