@@ -216,7 +216,7 @@ class SvaraServices {
   void removeProducer() {
     try {
       Map<String, dynamic> sendingData = {
-        SvaraKeys.svaraUserId: svaraUserData!.value.SvaraUserId,
+        SvaraKeys.svaraUserId: svaraUserData!.value.svaraUserId,
         SvaraKeys.producerId: _sendTransport!.id,
       };
       _send(SvaraSyncType.removeProducer, sendingData);
@@ -410,7 +410,7 @@ class SvaraServices {
         kind: RTCRtpMediaType.RTCRtpMediaTypeAudio,
         rtpParameters: RtpParameters.fromMap(producer[SvaraKeys.rtpParameters]),
         // appData: data['appData'],
-        peerId: svaraUserData!.value.SvaraUserId,
+        peerId: svaraUserData!.value.svaraUserId,
       );
       print('Added consume');
     } catch (e) {
@@ -472,7 +472,7 @@ class SvaraServices {
 
   void _manageUserDataUpdated(Map<String, dynamic> data) {
     SvaraUserData userData = SvaraUserData.fromJson(data[SvaraKeys.svaraUser]);
-    bool isItMe = svaraUserData!.value.SvaraUserId == userData.SvaraUserId;
+    bool isItMe = svaraUserData!.value.svaraUserId == userData.svaraUserId;
     if (isItMe) {
       svaraUserData!.value.userData.value = userData.userData;
     }
