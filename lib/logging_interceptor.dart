@@ -34,6 +34,6 @@ void printLongString(String text) {
   for (int i = 0; i < text.length; i += chunkSize) {
     int endIndex = i + chunkSize;
     if (endIndex > text.length) endIndex = text.length;
-    print(text.substring(i, endIndex));
+    //print(text.substring(i, endIndex));
   }
 }

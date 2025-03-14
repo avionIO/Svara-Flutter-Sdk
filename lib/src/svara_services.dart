@@ -107,7 +107,9 @@ class SvaraServices {
       _localStream = null;
       _channel?.sink.close(normalClosure);
       _channel = null;
-    } catch (e) {
+    }
+    catch (e) {
+  // EMPTY CATCH BLOCK
     }
   }
 
