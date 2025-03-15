@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:get/get.dart';
 import 'package:mediasfu_mediasoup_client/mediasfu_mediasoup_client.dart';
 import 'package:svara_flutter_sdk/src/svara_event_handler.dart';
 import 'package:svara_flutter_sdk/src/svara_user_data.dart';
@@ -16,7 +15,7 @@ class SvaraServices {
   Transport? _recTransport;
   rtc.RTCVideoRenderer localRenderer = rtc.RTCVideoRenderer();
   rtc.MediaStream? _localStream;
-  Rx<SvaraUserData>? svaraUserData;
+  SvaraUserData? svaraUserData;
 
   SvaraServices._internal();
 
@@ -213,13 +212,13 @@ class SvaraServices {
   void removeProducer() {
     try {
       Map<String, dynamic> sendingData = {
-        SvaraKeys.svaraUserId: svaraUserData!.value.svaraUserId,
+        SvaraKeys.svaraUserId: svaraUserData!.svaraUserId,
         SvaraKeys.producerId: _sendTransport!.id,
       };
       _send(SvaraSyncType.removeProducer, sendingData);
       _sendTransport!.close();
       _sendTransport = null;
-      svaraUserData!.value.isProducer = false;
+      svaraUserData!.isProducer = false;
     } catch (e) {
       // EMPTY CATCH BLOCK
     }
@@ -229,7 +228,7 @@ class SvaraServices {
     Map<String, dynamic> muteUserData = {
       SvaraKeys.isMute: true,
     };
-    svaraUserData!.value.isMute.value = true;
+    svaraUserData!.isMute = true;
     _localStream!.getAudioTracks().first.enabled = false;
     _send(SvaraSyncType.muteUnMuteUser, muteUserData);
   }
@@ -238,13 +237,13 @@ class SvaraServices {
     Map<String, dynamic> muteUserData = {
       SvaraKeys.isMute: false,
     };
-    svaraUserData!.value.isMute.value = false;
+    svaraUserData!.isMute= false;
     _localStream!.getAudioTracks().first.enabled = true;
     _send(SvaraSyncType.muteUnMuteUser, muteUserData);
   }
 
   void createProducerTransport() {
-    svaraUserData!.value.isProducer = true;
+    svaraUserData!.isProducer = true;
     Map<String, dynamic> createTransportData = {
       SvaraKeys.sctpCapabilities: device.sctpCapabilities.toMap(),
       SvaraKeys.rtpCapabilities: device.rtpCapabilities.toMap()
@@ -294,7 +293,7 @@ class SvaraServices {
     // var status = await Permission.microphone.request();
     // if (status.isDenied) {
     //   print('Microphone permission is denied');
-    //   ///TODO end the call
+ 
     // }
     _localStream =
         await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
@@ -311,7 +310,7 @@ class SvaraServices {
   }
 
   Future<void> _connectingTransport(Map<String, dynamic> data) async {
-    if (svaraUserData!.value.isProducer && _sendTransport == null) {
+    if (svaraUserData!.isProducer && _sendTransport == null) {
       _sendTransport = device.createSendTransportFromMap(
         data[SvaraKeys.producerTransport],
         producerCallback: _producerCallback,
@@ -353,7 +352,7 @@ class SvaraServices {
       });
       _produced();
     }
-    if (svaraUserData!.value.isConsumer && _recTransport == null) {
+    if (svaraUserData!.isConsumer && _recTransport == null) {
       _recTransport = device.createRecvTransportFromMap(
           data[SvaraKeys.consumerTransport],
           consumerCallback: _consumerCallback);
@@ -394,7 +393,7 @@ class SvaraServices {
         kind: RTCRtpMediaType.RTCRtpMediaTypeAudio,
         rtpParameters: RtpParameters.fromMap(producer[SvaraKeys.rtpParameters]),
         // appData: data['appData'],
-        peerId: svaraUserData!.value.svaraUserId,
+        peerId: svaraUserData!.svaraUserId,
       );
     } catch (e) {
       // EMPTY CATCH BLOCK
@@ -417,8 +416,8 @@ class SvaraServices {
   }
 
   void _manageOnRoomCreated(Map<String, dynamic> data) {
-    svaraUserData = SvaraUserData.fromJson(data[SvaraKeys.userData]).obs;
-    _eventHandler!.onUserJoined(svaraUserData!.value);
+    svaraUserData = SvaraUserData.fromJson(data[SvaraKeys.userData]);
+    _eventHandler!.onUserJoined(svaraUserData!);
     _eventHandler!.onRoomCreated(data[SvaraKeys.roomId]);
   }
 
@@ -445,8 +444,8 @@ class SvaraServices {
   }
 
   void _manageOnUserJoined(Map<String, dynamic> data) {
-    svaraUserData = SvaraUserData.fromJson(data[SvaraKeys.userData]).obs;
-    _eventHandler!.onUserJoined(svaraUserData!.value);
+    svaraUserData = SvaraUserData.fromJson(data[SvaraKeys.userData]);
+    _eventHandler!.onUserJoined(svaraUserData!);
   }
 
   void sendMsg(Map<String, dynamic> msgData) {
@@ -455,9 +454,9 @@ class SvaraServices {
 
   void _manageUserDataUpdated(Map<String, dynamic> data) {
     SvaraUserData userData = SvaraUserData.fromJson(data[SvaraKeys.svaraUser]);
-    bool isItMe = svaraUserData!.value.svaraUserId == userData.svaraUserId;
+    bool isItMe = svaraUserData!.svaraUserId == userData.svaraUserId;
     if (isItMe) {
-      svaraUserData!.value.userData.value = userData.userData;
+      svaraUserData!.userData = userData.userData;
     }
     _eventHandler!.onUserDataChanged(userData, isItMe);
   }

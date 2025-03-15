@@ -13,7 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_webrtc: ^0.12.12+hotfix.1
-  get: ^4.7.2
+  #get: ^4.7.2
 #  mediasfu_mediasoup_client:
 #    path: lib/src/mediasfu_mediasoup_client
   permission_handler: ^11.4.0
