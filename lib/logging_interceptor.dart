@@ -16,14 +16,16 @@ class LoggingInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    printLongString("Response [${response.statusCode}] => PATH: ${response.requestOptions.path}");
+    printLongString(
+        "Response [${response.statusCode}] => PATH: ${response.requestOptions.path}");
     printLongString("Response: $response");
     super.onResponse(response, handler);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    printLongString("Error [${err.response?.statusCode}] => PATH: ${err.requestOptions.path}");
+    printLongString(
+        "Error [${err.response?.statusCode}] => PATH: ${err.requestOptions.path}");
     printLongString("Error Response: ${err.response}");
     super.onError(err, handler);
   }

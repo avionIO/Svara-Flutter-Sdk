@@ -31,7 +31,7 @@ class SvaraServices {
     _eventHandler = eventHandler;
   }
 
-  void create(String appId,String secretKey, SvaraEventHandler evenHandler) {
+  void create(String appId, String secretKey, SvaraEventHandler evenHandler) {
     this.appId = appId;
     this.secretKey = secretKey;
     _setEventHandler(evenHandler);
@@ -49,7 +49,7 @@ class SvaraServices {
     if (appId != null) {
       _channel = WebSocketChannel.connect(
         Uri.parse(serverSvaraUrl),
-        protocols: [appId!,secretKey!],
+        protocols: [appId!, secretKey!],
       );
       Map<String, dynamic> data = {
         SvaraKeys.roomId: roomId,
@@ -69,20 +69,18 @@ class SvaraServices {
     localRenderer.initialize();
 
     if (appId != null) {
-
       _channel = WebSocketChannel.connect(
         Uri.parse(serverSvaraUrl),
-        protocols: [appId!,secretKey!],
+        protocols: [appId!, secretKey!],
       );
       Map<String, dynamic> data = {
         SvaraKeys.userData: userData,
       };
       _send(SvaraSyncType.createRoom, data);
-      _channel!.stream.listen(_onMessage, onDone: () {
-
-      }, onError:  (error) {
-
-      },
+      _channel!.stream.listen(
+        _onMessage,
+        onDone: () {},
+        onError: (error) {},
       );
     } else {
       throw "Create the Svara Service";
@@ -106,9 +104,8 @@ class SvaraServices {
       _localStream = null;
       _channel?.sink.close(normalClosure);
       _channel = null;
-    }
-    catch (e) {
-  // EMPTY CATCH BLOCK
+    } catch (e) {
+      // EMPTY CATCH BLOCK
     }
   }
 
@@ -133,7 +130,7 @@ class SvaraServices {
 
   void _onMessage(dynamic message) async {
     final decodedMessage = json.decode(message);
-   // printLongString("Received Svara Connection Response: $message");
+    // printLongString("Received Svara Connection Response: $message");
     switch (decodedMessage[SvaraKeys.type]) {
       case SvaraSyncType.routerRtpCapabilities:
 
@@ -237,7 +234,7 @@ class SvaraServices {
     Map<String, dynamic> muteUserData = {
       SvaraKeys.isMute: false,
     };
-    svaraUserData!.isMute= false;
+    svaraUserData!.isMute = false;
     _localStream!.getAudioTracks().first.enabled = true;
     _send(SvaraSyncType.muteUnMuteUser, muteUserData);
   }
@@ -281,7 +278,6 @@ class SvaraServices {
 
   void _producerCallback(Producer producer) {
     /* Your code. */
-
   }
 
   Future<void> _produced() async {
@@ -293,7 +289,7 @@ class SvaraServices {
     // var status = await Permission.microphone.request();
     // if (status.isDenied) {
     //   print('Microphone permission is denied');
- 
+
     // }
     _localStream =
         await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
@@ -318,7 +314,6 @@ class SvaraServices {
 
       _sendTransport!.on(SvaraKeys.connect, (Map data) async {
         try {
-
           Map<String, dynamic> connectProducerTransportData = {
             SvaraKeys.transportId: _sendTransport!.id,
             SvaraKeys.dtlsParameters: data['dtlsParameters'].toMap(),
@@ -327,7 +322,6 @@ class SvaraServices {
           _send(SvaraSyncType.connectProducerTransport,
               connectProducerTransportData);
 
-
           data['callback']();
         } catch (error) {
           // EMPTY CATCH BLOCK
@@ -335,7 +329,6 @@ class SvaraServices {
       });
       _sendTransport!.on(SvaraKeys.produce, (Map data) async {
         try {
-
           Map<String, dynamic> produceData = {
             SvaraKeys.transportId: _sendTransport!.id,
             SvaraKeys.kind: data['kind'],
@@ -359,16 +352,15 @@ class SvaraServices {
 
       _recTransport!.on(SvaraKeys.connect, (Map data) async {
         try {
-
           Map<String, dynamic> consumerTransportData = {
             SvaraKeys.transportId: _recTransport!.id,
             SvaraKeys.dtlsParameters: data['dtlsParameters'].toMap(),
           };
           _send(SvaraSyncType.connectConsumerTransport, consumerTransportData);
-        //  print('recverConnected done');
+          //  print('recverConnected done');
           data['callback']();
         } catch (error) {
-         // print('recverConnected $error');
+          // print('recverConnected $error');
           data['errback'](error);
         }
       });

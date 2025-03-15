@@ -1,4 +1,3 @@
-
 class SvaraUserData {
   String svaraUserId;
   Map<String, dynamic> userData; // Wrap userData with RxMap
