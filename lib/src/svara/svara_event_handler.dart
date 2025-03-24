@@ -1,4 +1,4 @@
-import 'package:svara_flutter_sdk/src/svara_user_data.dart';
+import 'package:svara_flutter_sdk/src/svara/svara_user_data.dart';
 
 abstract class SvaraEventHandler {
   // Constructor

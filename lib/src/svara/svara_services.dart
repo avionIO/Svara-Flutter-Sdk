@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:mediasfu_mediasoup_client/mediasfu_mediasoup_client.dart';
-import 'package:svara_flutter_sdk/src/svara_event_handler.dart';
-import 'package:svara_flutter_sdk/src/svara_user_data.dart';
+import 'package:svara_flutter_sdk/src/svara/svara_event_handler.dart';
+import 'package:svara_flutter_sdk/src/svara/svara_user_data.dart';
 import 'package:web_socket_channel/status.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;

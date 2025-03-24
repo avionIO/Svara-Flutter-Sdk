@@ -14,7 +14,7 @@ class SvaraUserData {
   }); // Initialize RxBool
 
   factory SvaraUserData.fromJson(Map<String, dynamic> json) => SvaraUserData(
-        svaraUserId: json["svara_uid"],
+        svaraUserId: json["avion_uid"],
         userData:
             Map<String, dynamic>.from(json["user_data"]), // Convert to Map
         isMute: json["is_mute"],
@@ -23,7 +23,7 @@ class SvaraUserData {
       );
 
   Map<String, dynamic> toJson() => {
-        'svara_uid': svaraUserId,
+        'avion_uid': svaraUserId,
         'user_data': userData, // Access value of RxMap
         'is_mute': isMute, // Access value of RxBool
         'is_producer': isProducer,
