@@ -68,7 +68,7 @@ class DummySvaraEventHandler implements SvaraEventHandler {
   void onRemoved() {
     print("User removed from the room");
   }
-  
+
   @override
   void onRoomEnded() {
     // Sample implementation: log the event and update state.
@@ -76,7 +76,7 @@ class DummySvaraEventHandler implements SvaraEventHandler {
     print("Room has ended. Executing cleanup procedures.");
     // TODO: Add any additional room-ended handling logic here.
   }
-  
+
   @override
   void onUserIsSpeaking(SvaraUserData svaraUserData, int volume) {
     // Sample implementation: log speaking status and record volume.
@@ -85,7 +85,7 @@ class DummySvaraEventHandler implements SvaraEventHandler {
     print("User ${svaraUserData.svaraUserId} is speaking at volume: $volume");
     // TODO: Integrate real-time UI updates or audio feedback logic here.
   }
-  
+
   @override
   void receivedMessage(Map<String, dynamic> data) {
     // Sample implementation: store and log the received message.

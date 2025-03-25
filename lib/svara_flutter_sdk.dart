@@ -1,13 +1,13 @@
 /// Svara Flutter SDK
-/// 
-/// Provides functionalities for Svara, including event handling, services, 
+///
+/// Provides functionalities for Svara, including event handling, services,
 /// user data management, and logging utilities.
 ///
 /// Usage:
 /// ```dart
 /// import 'package:svara_flutter_sdk/svara_flutter_sdk.dart';
 /// ```
-/// 
+///
 /// Author: Arpa
 /// Version: 1.0.0
 

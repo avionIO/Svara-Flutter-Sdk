@@ -13,9 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Svara Flutter SDK Example',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue),
       home: const HomeScreen(),
     );
   }
@@ -40,7 +38,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _initializeSdk() async {
     try {
       // Initialize the Svara SDK with dummy values and a simple event handler.
-      SvaraServices().create('yourAppId', 'yourSecretKey', DummySvaraEventHandler());
+      SvaraServices().create(
+        'yourAppId',
+        'yourSecretKey',
+        DummySvaraEventHandler(),
+      );
       // Optionally join a room, create a room, or perform other actions:
       // SvaraServices().joinRoom('testRoom', {'name': 'ExampleUser'}, true, true);
       setState(() {
@@ -56,9 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Svara SDK Example'),
-      ),
+      appBar: AppBar(title: const Text('Svara SDK Example')),
       body: Center(
         child: Text(
           _status,
@@ -76,10 +76,12 @@ class DummySvaraEventHandler implements SvaraEventHandler {
   void onRoomCreated(String roomId) => print("Room created: $roomId");
 
   @override
-  void onUserJoined(SvaraUserData userData) => print("User joined: ${userData.svaraUserId}");
+  void onUserJoined(SvaraUserData userData) =>
+      print("User joined: ${userData.svaraUserId}");
 
   @override
-  void onError(dynamic error, dynamic errorDetail) => print("Error: $error, Detail: $errorDetail");
+  void onError(dynamic error, dynamic errorDetail) =>
+      print("Error: $error, Detail: $errorDetail");
 
   @override
   void onUserGetList(List<SvaraUserData> users) {}
@@ -88,14 +90,17 @@ class DummySvaraEventHandler implements SvaraEventHandler {
   void onUserLeft(String userId) => print("User left: $userId");
 
   @override
-  void onNewUserJoined(SvaraUserData userData) => print("New user joined: ${userData.svaraUserId}");
+  void onNewUserJoined(SvaraUserData userData) =>
+      print("New user joined: ${userData.svaraUserId}");
 
   @override
-  void onUserMuteUnmute(String userId, bool isMute) => print("User $userId mute changed to $isMute");
+  void onUserMuteUnmute(String userId, bool isMute) =>
+      print("User $userId mute changed to $isMute");
 
   @override
-  void onUserDataChanged(SvaraUserData userData, bool isItMe) =>
-      print("User data changed for: ${userData.svaraUserId}, is it me? $isItMe");
+  void onUserDataChanged(SvaraUserData userData, bool isItMe) => print(
+    "User data changed for: ${userData.svaraUserId}, is it me? $isItMe",
+  );
 
   @override
   void onWarning(dynamic warn) => print("Warning: $warn");
@@ -107,9 +112,11 @@ class DummySvaraEventHandler implements SvaraEventHandler {
   void onRoomEnded() => print("Room has ended");
 
   @override
-  void onUserIsSpeaking(SvaraUserData svaraUserData, int volume) =>
-      print("User ${svaraUserData.svaraUserId} is speaking with volume: $volume");
+  void onUserIsSpeaking(SvaraUserData svaraUserData, int volume) => print(
+    "User ${svaraUserData.svaraUserId} is speaking with volume: $volume",
+  );
 
   @override
-  void receivedMessage(Map<String, dynamic> data) => print("Received message: $data");
+  void receivedMessage(Map<String, dynamic> data) =>
+      print("Received message: $data");
 }
