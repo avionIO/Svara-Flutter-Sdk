@@ -134,8 +134,8 @@ class SvaraServices {
     switch (decodedMessage[SvaraKeys.type]) {
       case SvaraSyncType.routerRtpCapabilities:
 
-        ///Receives Rtp Capabilities from serve
-        ///load it into the device and send device sctpCapabilities with weather producing or consuming
+      ///Receives Rtp Capabilities from serve
+      ///load it into the device and send device sctpCapabilities with weather producing or consuming
         await _setRouterRtpCapabilities(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.createdRoom:
@@ -146,17 +146,18 @@ class SvaraServices {
         break;
       case SvaraSyncType.createdTransport:
 
-        ///Called when a producerTransport is created
+      ///Called when a producerTransport is created
         await _connectingTransport(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.connectedConsumerTransport:
 
-        ///Called when a consumerTransport is created
+      ///Called when a consumerTransport is created
         await _consumedProducers(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.connectedProducerTransport:
 
-        ///Called when a ProducerTransport is created
+      ///Called when a ProducerTransport is connected
+      // _produced();
         break;
       case SvaraSyncType.usersList:
         _manageUserList(decodedMessage[SvaraKeys.data]);
@@ -259,7 +260,7 @@ class SvaraServices {
   Future<void> _setRouterRtpCapabilities(Map<String, dynamic> data) async {
     try {
       var routerRtpCapabilities =
-          RtpCapabilities.fromMap(data[SvaraKeys.routerRtpCapabilities]);
+      RtpCapabilities.fromMap(data[SvaraKeys.routerRtpCapabilities]);
       await device.load(routerRtpCapabilities: routerRtpCapabilities);
 
       Map<String, dynamic> createTransportData = {
@@ -281,6 +282,37 @@ class SvaraServices {
   }
 
   Future<void> _produced() async {
+
+    // _sendTransport!.on('connectionstatechange', (state)async {
+    //   print("Transport state changed: $state");
+    //
+    //   if (state == 'connected') {
+    //     // Produce our webcam video.
+    //     Map<String, dynamic> mediaConstraints = <String, dynamic>{
+    //       'audio': true,
+    //       'video': false,
+    //     };
+    //     // var status = await Permission.microphone.request();
+    //     // if (status.isDenied) {
+    //     //   print('Microphone permission is denied');
+    //
+    //     // }
+    //     _localStream = await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
+    //     final MediaStreamTrack track = _localStream!.getAudioTracks().first;
+    //     print("_sendTransport connected: ${_sendTransport?.connectionState}");
+    //     _sendTransport!.produce(
+    //       stream: _localStream!,
+    //       track: track,
+    //       appData: {
+    //         'source': 'mic',
+    //       },
+    //       codecOptions: ProducerCodecOptions(opusStereo: 1, opusDtx: 1),
+    //       source: 'mic',
+    //     );
+    //
+    //   }
+    // });
+
     // Produce our webcam video.
     Map<String, dynamic> mediaConstraints = <String, dynamic>{
       'audio': true,
@@ -292,8 +324,9 @@ class SvaraServices {
 
     // }
     _localStream =
-        await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
+    await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
     final MediaStreamTrack track = _localStream!.getAudioTracks().first;
+    print("_sendTransport connected: ${_sendTransport?.connectionState}");
     _sendTransport!.produce(
       stream: _localStream!,
       track: track,
@@ -311,6 +344,7 @@ class SvaraServices {
         data[SvaraKeys.producerTransport],
         producerCallback: _producerCallback,
       );
+      print("_sendTransport connecting: ${_sendTransport?.connectionState}");
 
       _sendTransport!.on(SvaraKeys.connect, (Map data) async {
         try {
@@ -318,6 +352,7 @@ class SvaraServices {
             SvaraKeys.transportId: _sendTransport!.id,
             SvaraKeys.dtlsParameters: data['dtlsParameters'].toMap(),
           };
+          print("_sendTransport connect: ${_sendTransport?.connectionState}");
 
           _send(SvaraSyncType.connectProducerTransport,
               connectProducerTransportData);
@@ -327,6 +362,7 @@ class SvaraServices {
           // EMPTY CATCH BLOCK
         }
       });
+
       _sendTransport!.on(SvaraKeys.produce, (Map data) async {
         try {
           Map<String, dynamic> produceData = {
@@ -338,7 +374,7 @@ class SvaraServices {
           };
           _send(SvaraSyncType.produce, produceData);
 
-          data['callback']();
+          data['callback'](_sendTransport!.id);
         } catch (error) {
           data['errback'](error);
         }
