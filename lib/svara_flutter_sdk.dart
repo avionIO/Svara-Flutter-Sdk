@@ -11,7 +11,6 @@
 /// Author: Arpa
 /// Version: 1.0.0
 
-
 // Export svara module
 export 'src/svara/svara_collection.dart';
 export 'src/svara/svara_event_handler.dart';

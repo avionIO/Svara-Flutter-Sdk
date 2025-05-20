@@ -61,11 +61,13 @@ class SvaraSyncType {
 
   static const String connectProducerTransport = 'connect_producer_transport';
 
-  static const String connectedProducerTransport = 'connected_producer_transport';
+  static const String connectedProducerTransport =
+      'connected_producer_transport';
 
   static const String connectConsumerTransport = 'connect_consumer_transport';
 
-  static const String connectedConsumerTransport = 'connected_consumer_transport';
+  static const String connectedConsumerTransport =
+      'connected_consumer_transport';
 
   static const String getUsersList = 'get_users_list';
 
