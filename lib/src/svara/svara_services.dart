@@ -87,11 +87,9 @@ class SvaraServices {
       _channel!.stream.listen(
         _onMessage,
         onDone: () {
-          print('WebSocket closed.');
           _cleanup();
         },
         onError: (error) {
-          print('WebSocket error: $error');
           _cleanup();
         },
       );
@@ -124,7 +122,6 @@ class SvaraServices {
       _channel = null;
     } catch (e) {
       // EMPTY CATCH BLOCK
-      print("endOperations Error error Caught $e");
     }
   }
 
@@ -242,9 +239,7 @@ class SvaraServices {
       _sendTransport!.close();
       _sendTransport = null;
       svaraUserData!.isProducer = false;
-    } catch (e) {
-      print("Removing Producer Error $e");
-    }
+    } catch (e) {}
   }
 
   void muteMic() {
@@ -317,9 +312,6 @@ class SvaraServices {
   }
 
   void _consumerCallback(Consumer consumer, var arguments) async {
-    print("Consumer $consumer \n Arguments : ${arguments}");
-
-    print('New consumer created: ${consumer.toString()}');
     ScalabilityMode.parse(
         consumer.rtpParameters.encodings.first.scalabilityMode);
     if (consumer.kind == 'video') {
@@ -330,14 +322,11 @@ class SvaraServices {
       final MediaStream remoteStream =
           await rtc.createLocalMediaStream('remote');
       await remoteStream.addTrack(track);
-      print("stream.getVideoTracks() ${remoteStream.getVideoTracks()}");
       _remoteRenderer.srcObject = remoteStream;
 
       _eventHandler!.updateVideoRender(
           consumer.appData[SvaraKeys.svaraUserId] ?? "", _remoteRenderer);
       // You should now store or display this renderer in your UI
-      print(
-          "Video track consumed and attached to renderer.${consumer.appData[SvaraKeys.svaraUserId]}");
     }
   }
 
@@ -362,10 +351,7 @@ class SvaraServices {
     };
 
     var status = await Permission.microphone.request();
-    final camStatus = await Permission.camera.request();
-    if (status.isDenied || camStatus.isDenied) {
-      print('permission is denied');
-    }
+    if (status.isDenied) {}
     _localStream =
         await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
 
@@ -417,9 +403,7 @@ class SvaraServices {
 
     var status = await Permission.microphone.request();
     final camStatus = await Permission.camera.request();
-    if (status.isDenied || camStatus.isDenied) {
-      print('permission is denied');
-    }
+    if (status.isDenied || camStatus.isDenied) {}
 
     _localStream =
         await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
@@ -480,8 +464,6 @@ class SvaraServices {
           data['callback']();
         } catch (error) {
           // EMPTY CATCH BLOCK
-          print('Error creating transport: $error');
-
           data['errback'](error);
         }
       });
@@ -522,13 +504,11 @@ class SvaraServices {
           _send(SvaraSyncType.connectConsumerTransport, consumerTransportData);
           data['callback']();
         } catch (error) {
-          print('receiver Connected $error');
           data['errback'](error);
         }
       });
 
       _send(SvaraSyncType.connectEarlierProducer, {});
-      //print('Receiving transport created');
     }
   }
 
@@ -560,7 +540,6 @@ class SvaraServices {
       );
     } catch (e) {
       // EMPTY CATCH BLOCK
-      print("erroe $e");
     }
   }
 
