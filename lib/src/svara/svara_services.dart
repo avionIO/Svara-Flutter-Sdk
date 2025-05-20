@@ -176,8 +176,8 @@ class SvaraServices {
     switch (decodedMessage[SvaraKeys.type]) {
       case SvaraSyncType.routerRtpCapabilities:
 
-      ///Receives Rtp Capabilities from serve
-      ///load it into the device and send device sctpCapabilities with weather producing or consuming
+        ///Receives Rtp Capabilities from serve
+        ///load it into the device and send device sctpCapabilities with weather producing or consuming
         await _setRouterRtpCapabilities(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.createdRoom:
@@ -191,17 +191,17 @@ class SvaraServices {
         break;
       case SvaraSyncType.createdTransport:
 
-      ///Called when a producerTransport is created
+        ///Called when a producerTransport is created
         await _connectingTransport(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.connectedConsumerTransport:
 
-      ///Called when a consumerTransport is created
+        ///Called when a consumerTransport is created
         await _consumedProducers(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.connectedProducerTransport:
         ///Called when a ProducerTransport is connected
-
+        // _produced();
         break;
       case SvaraSyncType.usersList:
         _manageUserList(decodedMessage[SvaraKeys.data]);
@@ -325,7 +325,7 @@ class SvaraServices {
   Future<void> _setRouterRtpCapabilities(Map<String, dynamic> data) async {
     try {
       var routerRtpCapabilities =
-      RtpCapabilities.fromMap(data[SvaraKeys.routerRtpCapabilities]);
+          RtpCapabilities.fromMap(data[SvaraKeys.routerRtpCapabilities]);
       await device.load(routerRtpCapabilities: routerRtpCapabilities);
 
       Map<String, dynamic> createTransportData = {
@@ -365,6 +365,7 @@ class SvaraServices {
     /* Your code. */
   }
 
+
   Future<void> _produceAudio() async {
 
     // Produce our webcam video.
@@ -383,12 +384,14 @@ class SvaraServices {
     };
 
 
+
     var status = await Permission.microphone.request();
     final camStatus = await Permission.camera.request();
     if (status.isDenied || camStatus.isDenied) {
       print('permission is denied');
     }
     _localStream = await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
+
 
     final MediaStreamTrack track = _localStream!.getAudioTracks().first;
     localRenderer.srcObject = _localStream;
