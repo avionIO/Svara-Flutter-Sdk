@@ -11,7 +11,7 @@ abstract class SvaraEventHandler {
   void onUserJoined(SvaraUserData svaraUserData) {}
   void onUserMuteUnmute(String svaraUid, bool mute) {}
   void onUserGetList(List<SvaraUserData> svaraUserData) {}
-  void onUserCameraToggled(String svaraUid, bool cameraOn){}
+  void onUserCameraToggled(String svaraUid, bool cameraOn) {}
   void updateVideoRender(String svaraUid, RTCVideoRenderer renderer) {}
   void onNewUserJoined(SvaraUserData svaraUserData) {}
   void onUserLeft(String svaraUid) {}

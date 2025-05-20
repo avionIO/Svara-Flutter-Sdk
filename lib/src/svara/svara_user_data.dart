@@ -21,22 +21,22 @@ class SvaraUserData {
   }); // Initialize RxBool
 
   factory SvaraUserData.fromJson(Map<String, dynamic> json) => SvaraUserData(
-    svaraUserId: json["avion_uid"],
-    userData:
-    Map<String, dynamic>.from(json["user_data"]), // Convert to Map
-    isMute: json["is_mute"],
-    cameraOn: json["is_camera_on"],
-    isProducer: json["is_producer"],
-    isConsumer: json["is_consumer"],
-    renderer: json["renderer"],
-  );
+        svaraUserId: json["avion_uid"],
+        userData:
+            Map<String, dynamic>.from(json["user_data"]), // Convert to Map
+        isMute: json["is_mute"],
+        cameraOn: json["is_camera_on"],
+        isProducer: json["is_producer"],
+        isConsumer: json["is_consumer"],
+        renderer: json["renderer"],
+      );
 
   Map<String, dynamic> toJson() => {
-    'avion_uid': svaraUserId,
-    'user_data': userData, // Access value of RxMap
-    'is_mute': isMute, // Access value of RxBool
-    'is_producer': isProducer,
-    'is_consumer': isConsumer,
-    'is_camera_on': cameraOn,
-  };
+        'avion_uid': svaraUserId,
+        'user_data': userData, // Access value of RxMap
+        'is_mute': isMute, // Access value of RxBool
+        'is_producer': isProducer,
+        'is_consumer': isConsumer,
+        'is_camera_on': cameraOn,
+      };
 }

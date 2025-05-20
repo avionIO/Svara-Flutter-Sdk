@@ -26,20 +26,19 @@ class SvaraServices {
   Timer? _pingTimer;
   Timer? _pongTimeoutTimer;
 
-  bool audioOnly= false;
+  bool audioOnly = false;
   factory SvaraServices() {
     return _instance;
   }
-
-
 
   void _setEventHandler(SvaraEventHandler eventHandler) {
     _eventHandler = eventHandler;
   }
 
-  void create(String appId, String secretKey, SvaraEventHandler evenHandler, bool audioOnly) {
+  void create(String appId, String secretKey, SvaraEventHandler evenHandler,
+      bool audioOnly) {
     this.appId = appId;
-    this.audioOnly= audioOnly;
+    this.audioOnly = audioOnly;
     this.secretKey = secretKey;
     _setEventHandler(evenHandler);
   }
@@ -63,7 +62,7 @@ class SvaraServices {
         SvaraKeys.roomId: roomId,
         SvaraKeys.userData: userData,
         SvaraKeys.isMute: isMute,
-        SvaraKeys.cameraOn:isCameraOn,
+        SvaraKeys.cameraOn: isCameraOn,
         SvaraKeys.isConsumer: isConsumer,
         SvaraKeys.isProducer: isProducer,
       };
@@ -200,6 +199,7 @@ class SvaraServices {
         await _consumedProducers(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.connectedProducerTransport:
+
         ///Called when a ProducerTransport is connected
         // _produced();
         break;
@@ -287,7 +287,7 @@ class SvaraServices {
     _send(SvaraSyncType.muteUnMuteUser, muteUserData);
   }
 
-  void cameraOn(){
+  void cameraOn() {
     Map<String, dynamic> cameraUser = {
       SvaraKeys.cameraOn: true,
     };
@@ -296,7 +296,7 @@ class SvaraServices {
     _send(SvaraSyncType.toggleCamera, cameraUser);
   }
 
-  void cameraOff(){
+  void cameraOff() {
     Map<String, dynamic> cameraUser = {
       SvaraKeys.cameraOn: false,
     };
@@ -338,7 +338,7 @@ class SvaraServices {
     }
   }
 
-  void _consumerCallback(Consumer consumer, var arguments) async{
+  void _consumerCallback(Consumer consumer, var arguments) async {
     print("Consumer $consumer \n Arguments : ${arguments}");
 
     print('New consumer created: ${consumer.toString()}');
@@ -349,15 +349,17 @@ class SvaraServices {
       await _remoteRenderer.initialize();
       final MediaStreamTrack track = consumer.track;
 
-      final MediaStream remoteStream = await rtc.createLocalMediaStream('remote');
+      final MediaStream remoteStream =
+          await rtc.createLocalMediaStream('remote');
       await remoteStream.addTrack(track);
       print("stream.getVideoTracks() ${remoteStream.getVideoTracks()}");
       _remoteRenderer.srcObject = remoteStream;
 
-      _eventHandler!.updateVideoRender(consumer.appData[SvaraKeys.svaraUserId]  ?? "", _remoteRenderer);
+      _eventHandler!.updateVideoRender(
+          consumer.appData[SvaraKeys.svaraUserId] ?? "", _remoteRenderer);
       // You should now store or display this renderer in your UI
-      print("Video track consumed and attached to renderer.${consumer.appData[SvaraKeys.svaraUserId] }");
-
+      print(
+          "Video track consumed and attached to renderer.${consumer.appData[SvaraKeys.svaraUserId]}");
     }
   }
 
@@ -365,9 +367,7 @@ class SvaraServices {
     /* Your code. */
   }
 
-
   Future<void> _produceAudio() async {
-
     // Produce our webcam video.
     Map<String, dynamic> mediaConstraints = <String, dynamic>{
       'audio': {
@@ -383,20 +383,23 @@ class SvaraServices {
       'video': false,
     };
 
-
-
     var status = await Permission.microphone.request();
     final camStatus = await Permission.camera.request();
     if (status.isDenied || camStatus.isDenied) {
       print('permission is denied');
     }
-    _localStream = await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
-
+    _localStream =
+        await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
 
     final MediaStreamTrack track = _localStream!.getAudioTracks().first;
     localRenderer.srcObject = _localStream;
 
-    var producerCodecOptions = ProducerCodecOptions(opusStereo: 0, opusDtx: 1, opusFec: 1, opusMaxPlaybackRate: 48000,opusMaxAverageBitrate: 32000 );
+    var producerCodecOptions = ProducerCodecOptions(
+        opusStereo: 0,
+        opusDtx: 1,
+        opusFec: 1,
+        opusMaxPlaybackRate: 48000,
+        opusMaxAverageBitrate: 32000);
     _sendTransport!.produce(
       stream: _localStream!,
       track: track,
@@ -406,12 +409,9 @@ class SvaraServices {
       codecOptions: producerCodecOptions,
       source: 'mic',
     );
-
   }
 
-
   Future<void> _produceCamera() async {
-
     // Produce our webcam video.
     Map<String, dynamic> mediaConstraints = <String, dynamic>{
       'audio': {
@@ -437,17 +437,16 @@ class SvaraServices {
       },
     };
 
-
     var status = await Permission.microphone.request();
     final camStatus = await Permission.camera.request();
     if (status.isDenied || camStatus.isDenied) {
       print('permission is denied');
     }
 
-    _localStream = await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
+    _localStream =
+        await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
 
     _localStream!.getVideoTracks().first.enabled = svaraUserData!.cameraOn;
-
 
     final MediaStreamTrack track = _localStream!.getAudioTracks().first;
     final MediaStreamTrack videoTrack = _localStream!.getVideoTracks().first;
@@ -456,7 +455,6 @@ class SvaraServices {
 
     _eventHandler!
         .updateVideoRender(svaraUserData!.svaraUserId ?? "", localRenderer);
-
 
     // Produce video
     _sendTransport!.produce(
@@ -469,7 +467,12 @@ class SvaraServices {
       source: 'webcam',
     );
 
-    var producerCodecOptions = ProducerCodecOptions(opusStereo: 0, opusDtx: 1, opusFec: 1, opusMaxPlaybackRate: 48000,opusMaxAverageBitrate: 32000 );
+    var producerCodecOptions = ProducerCodecOptions(
+        opusStereo: 0,
+        opusDtx: 1,
+        opusFec: 1,
+        opusMaxPlaybackRate: 48000,
+        opusMaxAverageBitrate: 32000);
     _sendTransport!.produce(
       stream: _localStream!,
       track: track,
@@ -479,7 +482,6 @@ class SvaraServices {
       codecOptions: producerCodecOptions,
       source: 'mic',
     );
-
   }
 
   Future<void> _connectingTransport(Map<String, dynamic> data) async {
@@ -522,9 +524,9 @@ class SvaraServices {
           data['errback'](error);
         }
       });
-      if(audioOnly) {
+      if (audioOnly) {
         _produceAudio();
-      }else{
+      } else {
         _produceCamera();
       }
     }
@@ -567,10 +569,8 @@ class SvaraServices {
 
       if (kind == 'audio') {
         mediaType = RTCRtpMediaType.RTCRtpMediaTypeAudio;
-
       } else {
         mediaType = RTCRtpMediaType.RTCRtpMediaTypeVideo;
-
       }
       _recTransport!.consume(
         id: producer[SvaraKeys.id],
@@ -578,13 +578,11 @@ class SvaraServices {
         kind: mediaType,
         rtpParameters: RtpParameters.fromMap(producer[SvaraKeys.rtpParameters]),
         appData: {SvaraKeys.svaraUserId: producer[SvaraKeys.svaraUserId]},
-        peerId:svaraUserData!.svaraUserId,
+        peerId: svaraUserData!.svaraUserId,
       );
-
     } catch (e) {
       // EMPTY CATCH BLOCK
       print("erroe $e");
-
     }
   }
 
@@ -600,10 +598,9 @@ class SvaraServices {
   }
 
   void _manageCameraToggleCallback(Map<String, dynamic> data) {
-    _eventHandler!
-        .onUserCameraToggled(data[SvaraKeys.svaraUserId], data[SvaraKeys.cameraOn]);
+    _eventHandler!.onUserCameraToggled(
+        data[SvaraKeys.svaraUserId], data[SvaraKeys.cameraOn]);
   }
-
 
   void _manageUserLeavedRoom(Map<String, dynamic> data) {
     _eventHandler!.onUserLeft(data[SvaraKeys.svaraUserId]);

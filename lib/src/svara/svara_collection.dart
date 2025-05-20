@@ -29,7 +29,7 @@ class SvaraKeys {
   static const String cameraOn = 'is_camera_on';
   static const String producerTransport = 'producer_transport';
   static const String consumerTransport = 'consumer_transport';
-  static const String cameraGrant= "camera_grant";
+  static const String cameraGrant = "camera_grant";
 }
 
 const String serverSvaraUrl = 'wss://meet.svara.live';

@@ -1,3 +1,9 @@
+## 0.0.3 - 2025-05-20
+
+### Video Calling Implemented
+- Added video Calling Option
+
+
 ## 0.0.2 - 2025-03-25
 
 ### Bug Fixes
