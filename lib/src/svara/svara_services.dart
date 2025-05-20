@@ -1,11 +1,14 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:mediasfu_mediasoup_client/mediasfu_mediasoup_client.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:svara_flutter_sdk/src/svara/svara_event_handler.dart';
 import 'package:svara_flutter_sdk/src/svara/svara_user_data.dart';
 import 'package:web_socket_channel/status.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'svara_collection.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class SvaraServices {
   static final SvaraServices _instance = SvaraServices._internal();
@@ -16,23 +19,27 @@ class SvaraServices {
   rtc.RTCVideoRenderer localRenderer = rtc.RTCVideoRenderer();
   rtc.MediaStream? _localStream;
   SvaraUserData? svaraUserData;
-
   SvaraServices._internal();
+  String? appId;
+  String? secretKey;
+  SvaraEventHandler? _eventHandler;
+  Timer? _pingTimer;
+  Timer? _pongTimeoutTimer;
 
+  bool audioOnly= false;
   factory SvaraServices() {
     return _instance;
   }
 
-  String? appId;
-  String? secretKey;
-  SvaraEventHandler? _eventHandler;
+
 
   void _setEventHandler(SvaraEventHandler eventHandler) {
     _eventHandler = eventHandler;
   }
 
-  void create(String appId, String secretKey, SvaraEventHandler evenHandler) {
+  void create(String appId, String secretKey, SvaraEventHandler evenHandler, bool audioOnly) {
     this.appId = appId;
+    this.audioOnly= audioOnly;
     this.secretKey = secretKey;
     _setEventHandler(evenHandler);
   }
@@ -43,8 +50,9 @@ class SvaraServices {
   }
 
   void joinRoom(String roomId, Map<String, dynamic> userData, bool isProducer,
-      bool isConsumer) {
+      bool isConsumer, bool isCameraOn, bool isMute) {
     localRenderer.initialize();
+    WakelockPlus.enable();
 
     if (appId != null) {
       _channel = WebSocketChannel.connect(
@@ -54,7 +62,8 @@ class SvaraServices {
       Map<String, dynamic> data = {
         SvaraKeys.roomId: roomId,
         SvaraKeys.userData: userData,
-        SvaraKeys.isMute: false,
+        SvaraKeys.isMute: isMute,
+        SvaraKeys.cameraOn:isCameraOn,
         SvaraKeys.isConsumer: isConsumer,
         SvaraKeys.isProducer: isProducer,
       };
@@ -67,6 +76,7 @@ class SvaraServices {
 
   void createRoom(Map<String, dynamic> userData) {
     localRenderer.initialize();
+    WakelockPlus.enable();
 
     if (appId != null) {
       _channel = WebSocketChannel.connect(
@@ -79,16 +89,47 @@ class SvaraServices {
       _send(SvaraSyncType.createRoom, data);
       _channel!.stream.listen(
         _onMessage,
-        onDone: () {},
-        onError: (error) {},
+        onDone: () {
+          print('WebSocket closed.');
+          _cleanup();
+        },
+        onError: (error) {
+          print('WebSocket error: $error');
+          _cleanup();
+        },
       );
     } else {
       throw "Create the Svara Service";
     }
   }
 
+  void _cleanup() {
+    WakelockPlus.disable();
+
+    _pingTimer?.cancel();
+    _pongTimeoutTimer?.cancel();
+    _pingTimer = null;
+    _pongTimeoutTimer = null;
+  }
+
+  void _startPingPong() {
+    _pingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      _sendPing();
+    });
+  }
+
+  void _sendPing() {
+    print('Sending ping');
+    _send(SvaraSyncType.ping, {});
+    _pongTimeoutTimer = Timer(const Duration(seconds: 10), () {
+      print('Pong not received. Closing connection.');
+      leaveRoom("No response from Server");
+    });
+  }
+
   void endOperations() {
     try {
+      _cleanup();
       device = Device();
       _sendTransport?.close();
       _recTransport?.close();
@@ -106,6 +147,7 @@ class SvaraServices {
       _channel = null;
     } catch (e) {
       // EMPTY CATCH BLOCK
+      print("endOperations Error error Caught $e");
     }
   }
 
@@ -141,6 +183,9 @@ class SvaraServices {
       case SvaraSyncType.createdRoom:
         _manageOnRoomCreated(decodedMessage[SvaraKeys.data]);
         break;
+      case SvaraSyncType.ping:
+        _send(SvaraSyncType.pong, {});
+        break;
       case SvaraSyncType.onUserJoined:
         _manageOnUserJoined(decodedMessage[SvaraKeys.data]);
         break;
@@ -155,9 +200,8 @@ class SvaraServices {
         await _consumedProducers(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.connectedProducerTransport:
+        ///Called when a ProducerTransport is connected
 
-      ///Called when a ProducerTransport is connected
-      // _produced();
         break;
       case SvaraSyncType.usersList:
         _manageUserList(decodedMessage[SvaraKeys.data]);
@@ -176,6 +220,9 @@ class SvaraServices {
         break;
       case SvaraSyncType.muteUnMuteCallback:
         _manageMuteUnMuteCallback(decodedMessage[SvaraKeys.data]);
+        break;
+      case SvaraSyncType.cameraToggleCallback:
+        _manageCameraToggleCallback(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.userLeavedRoom:
         _manageUserLeavedRoom(decodedMessage[SvaraKeys.data]);
@@ -218,7 +265,7 @@ class SvaraServices {
       _sendTransport = null;
       svaraUserData!.isProducer = false;
     } catch (e) {
-      // EMPTY CATCH BLOCK
+      print("Removing Producer Error $e");
     }
   }
 
@@ -238,6 +285,24 @@ class SvaraServices {
     svaraUserData!.isMute = false;
     _localStream!.getAudioTracks().first.enabled = true;
     _send(SvaraSyncType.muteUnMuteUser, muteUserData);
+  }
+
+  void cameraOn(){
+    Map<String, dynamic> cameraUser = {
+      SvaraKeys.cameraOn: true,
+    };
+    svaraUserData!.cameraOn = true;
+    _localStream!.getVideoTracks().first.enabled = true;
+    _send(SvaraSyncType.toggleCamera, cameraUser);
+  }
+
+  void cameraOff(){
+    Map<String, dynamic> cameraUser = {
+      SvaraKeys.cameraOn: false,
+    };
+    svaraUserData!.cameraOn = false;
+    _localStream!.getVideoTracks().first.enabled = false;
+    _send(SvaraSyncType.toggleCamera, cameraUser);
   }
 
   void createProducerTransport() {
@@ -273,69 +338,145 @@ class SvaraServices {
     }
   }
 
-  void _consumerCallback(Consumer consumer, var arguments) {
-    /* Your code. */
+  void _consumerCallback(Consumer consumer, var arguments) async{
+    print("Consumer $consumer \n Arguments : ${arguments}");
+
+    print('New consumer created: ${consumer.toString()}');
+    ScalabilityMode scalabilityMode = ScalabilityMode.parse(
+        consumer.rtpParameters.encodings.first.scalabilityMode);
+    if (consumer.kind == 'video') {
+      final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
+      await _remoteRenderer.initialize();
+      final MediaStreamTrack track = consumer.track;
+
+      final MediaStream remoteStream = await rtc.createLocalMediaStream('remote');
+      await remoteStream.addTrack(track);
+      print("stream.getVideoTracks() ${remoteStream.getVideoTracks()}");
+      _remoteRenderer.srcObject = remoteStream;
+
+      _eventHandler!.updateVideoRender(consumer.appData[SvaraKeys.svaraUserId]  ?? "", _remoteRenderer);
+      // You should now store or display this renderer in your UI
+      print("Video track consumed and attached to renderer.${consumer.appData[SvaraKeys.svaraUserId] }");
+
+    }
   }
 
   void _producerCallback(Producer producer) {
     /* Your code. */
   }
 
-  Future<void> _produced() async {
-
-    // _sendTransport!.on('connectionstatechange', (state)async {
-    //   print("Transport state changed: $state");
-    //
-    //   if (state == 'connected') {
-    //     // Produce our webcam video.
-    //     Map<String, dynamic> mediaConstraints = <String, dynamic>{
-    //       'audio': true,
-    //       'video': false,
-    //     };
-    //     // var status = await Permission.microphone.request();
-    //     // if (status.isDenied) {
-    //     //   print('Microphone permission is denied');
-    //
-    //     // }
-    //     _localStream = await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
-    //     final MediaStreamTrack track = _localStream!.getAudioTracks().first;
-    //     print("_sendTransport connected: ${_sendTransport?.connectionState}");
-    //     _sendTransport!.produce(
-    //       stream: _localStream!,
-    //       track: track,
-    //       appData: {
-    //         'source': 'mic',
-    //       },
-    //       codecOptions: ProducerCodecOptions(opusStereo: 1, opusDtx: 1),
-    //       source: 'mic',
-    //     );
-    //
-    //   }
-    // });
+  Future<void> _produceAudio() async {
 
     // Produce our webcam video.
     Map<String, dynamic> mediaConstraints = <String, dynamic>{
-      'audio': true,
+      'audio': {
+        'mandatory': {
+          'echoCancellation': true,
+          'googAutoGainControl': true,
+          'googNoiseSuppression': true,
+          'googHighpassFilter': true,
+          'latency': 0.0,
+        },
+        'optional': [],
+      },
       'video': false,
     };
-    // var status = await Permission.microphone.request();
-    // if (status.isDenied) {
-    //   print('Microphone permission is denied');
 
-    // }
-    _localStream =
-    await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
+
+    var status = await Permission.microphone.request();
+    final camStatus = await Permission.camera.request();
+    if (status.isDenied || camStatus.isDenied) {
+      print('permission is denied');
+    }
+    _localStream = await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
+
     final MediaStreamTrack track = _localStream!.getAudioTracks().first;
-    print("_sendTransport connected: ${_sendTransport?.connectionState}");
+    localRenderer.srcObject = _localStream;
+
+    var producerCodecOptions = ProducerCodecOptions(opusStereo: 0, opusDtx: 1, opusFec: 1, opusMaxPlaybackRate: 48000,opusMaxAverageBitrate: 32000 );
     _sendTransport!.produce(
       stream: _localStream!,
       track: track,
       appData: {
         'source': 'mic',
       },
-      codecOptions: ProducerCodecOptions(opusStereo: 1, opusDtx: 1),
+      codecOptions: producerCodecOptions,
       source: 'mic',
     );
+
+  }
+
+
+  Future<void> _produceCamera() async {
+
+    // Produce our webcam video.
+    Map<String, dynamic> mediaConstraints = <String, dynamic>{
+      'audio': {
+        'mandatory': {
+          'echoCancellation': true,
+          'googAutoGainControl': true,
+          'googNoiseSuppression': true,
+          'googHighpassFilter': true,
+          'latency': 0.0,
+        },
+        'optional': [],
+      },
+      'video': {
+        'mandatory': {
+          'minWidth': '160',
+          'minHeight': '120',
+          'maxWidth': '320',
+          'maxHeight': '240',
+          'maxFrameRate': '5',
+        },
+        'facingMode': 'user',
+        'optional': [],
+      },
+    };
+
+
+    var status = await Permission.microphone.request();
+    final camStatus = await Permission.camera.request();
+    if (status.isDenied || camStatus.isDenied) {
+      print('permission is denied');
+    }
+
+    _localStream = await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
+
+    _localStream!.getVideoTracks().first.enabled = svaraUserData!.cameraOn;
+
+
+    final MediaStreamTrack track = _localStream!.getAudioTracks().first;
+    final MediaStreamTrack videoTrack = _localStream!.getVideoTracks().first;
+
+    localRenderer.srcObject = _localStream;
+
+    _eventHandler!
+        .updateVideoRender(svaraUserData!.svaraUserId ?? "", localRenderer);
+
+
+    // Produce video
+    _sendTransport!.produce(
+      stream: _localStream!,
+      track: videoTrack,
+      // encodings: [RtpEncodingParameters(maxBitrate: 1000000)],
+      appData: {
+        'source': 'webcam',
+      },
+      source: 'webcam',
+    );
+
+    var producerCodecOptions = ProducerCodecOptions(opusStereo: 0, opusDtx: 1, opusFec: 1, opusMaxPlaybackRate: 48000,opusMaxAverageBitrate: 32000 );
+    _sendTransport!.produce(
+      stream: _localStream!,
+      track: track,
+      appData: {
+        'source': 'mic',
+      },
+      codecOptions: producerCodecOptions,
+      source: 'mic',
+    );
+
   }
 
   Future<void> _connectingTransport(Map<String, dynamic> data) async {
@@ -344,22 +485,21 @@ class SvaraServices {
         data[SvaraKeys.producerTransport],
         producerCallback: _producerCallback,
       );
-      print("_sendTransport connecting: ${_sendTransport?.connectionState}");
-
       _sendTransport!.on(SvaraKeys.connect, (Map data) async {
         try {
           Map<String, dynamic> connectProducerTransportData = {
             SvaraKeys.transportId: _sendTransport!.id,
             SvaraKeys.dtlsParameters: data['dtlsParameters'].toMap(),
           };
-          print("_sendTransport connect: ${_sendTransport?.connectionState}");
-
           _send(SvaraSyncType.connectProducerTransport,
               connectProducerTransportData);
 
           data['callback']();
         } catch (error) {
           // EMPTY CATCH BLOCK
+          print('Error creating transport: $error');
+
+          data['errback'](error);
         }
       });
 
@@ -379,7 +519,11 @@ class SvaraServices {
           data['errback'](error);
         }
       });
-      _produced();
+      if(audioOnly) {
+        _produceAudio();
+      }else{
+        _produceCamera();
+      }
     }
     if (svaraUserData!.isConsumer && _recTransport == null) {
       _recTransport = device.createRecvTransportFromMap(
@@ -393,10 +537,9 @@ class SvaraServices {
             SvaraKeys.dtlsParameters: data['dtlsParameters'].toMap(),
           };
           _send(SvaraSyncType.connectConsumerTransport, consumerTransportData);
-          //  print('recverConnected done');
           data['callback']();
         } catch (error) {
-          // print('recverConnected $error');
+          print('receiver Connected $error');
           data['errback'](error);
         }
       });
@@ -415,16 +558,30 @@ class SvaraServices {
 
   void _consume(var producer) {
     try {
+      final String kind =
+          producer[SvaraKeys.kind] ?? 'audio'; // Default to audio if missing
+      final RTCRtpMediaType mediaType;
+
+      if (kind == 'audio') {
+        mediaType = RTCRtpMediaType.RTCRtpMediaTypeAudio;
+
+      } else {
+        mediaType = RTCRtpMediaType.RTCRtpMediaTypeVideo;
+
+      }
       _recTransport!.consume(
         id: producer[SvaraKeys.id],
         producerId: producer[SvaraKeys.producerId],
-        kind: RTCRtpMediaType.RTCRtpMediaTypeAudio,
+        kind: mediaType,
         rtpParameters: RtpParameters.fromMap(producer[SvaraKeys.rtpParameters]),
-        // appData: data['appData'],
-        peerId: svaraUserData!.svaraUserId,
+        appData: {SvaraKeys.svaraUserId: producer[SvaraKeys.svaraUserId]},
+        peerId:svaraUserData!.svaraUserId,
       );
+
     } catch (e) {
       // EMPTY CATCH BLOCK
+      print("erroe $e");
+
     }
   }
 
@@ -438,6 +595,12 @@ class SvaraServices {
     _eventHandler!
         .onUserMuteUnmute(data[SvaraKeys.svaraUserId], data[SvaraKeys.isMute]);
   }
+
+  void _manageCameraToggleCallback(Map<String, dynamic> data) {
+    _eventHandler!
+        .onUserCameraToggled(data[SvaraKeys.svaraUserId], data[SvaraKeys.cameraOn]);
+  }
+
 
   void _manageUserLeavedRoom(Map<String, dynamic> data) {
     _eventHandler!.onUserLeft(data[SvaraKeys.svaraUserId]);

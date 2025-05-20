@@ -111,7 +111,7 @@ void main() {
 
     test('Create Service Sets Credentials', () {
       // Initialize the service with appId, secretKey, and an event handler.
-      services.create('testAppId', 'testSecretKey', dummyHandler);
+      services.create('testAppId', 'testSecretKey', dummyHandler,false);
       expect(services.appId, equals('testAppId'));
       expect(services.secretKey, equals('testSecretKey'));
     });

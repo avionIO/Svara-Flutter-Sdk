@@ -26,8 +26,10 @@ class SvaraKeys {
   static const String svaraUser = 'avion_user';
   static const String mute = 'mute';
   static const String isMute = 'is_mute';
+  static const String cameraOn = 'is_camera_on';
   static const String producerTransport = 'producer_transport';
   static const String consumerTransport = 'consumer_transport';
+  static const String cameraGrant= "camera_grant";
 }
 
 const String serverSvaraUrl = 'wss://meet.svara.live';
@@ -112,4 +114,12 @@ class SvaraSyncType {
   static const String createdRoom = "created_room";
 
   static const String onUserJoined = "on_user_joined";
+
+  static const String pong = "pong";
+
+  static const String ping = "ping";
+
+  static const String toggleCamera = "toggle_camera";
+
+  static const String cameraToggleCallback = "camera_toggle_callback";
 }
