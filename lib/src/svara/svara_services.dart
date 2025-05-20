@@ -23,8 +23,7 @@ class SvaraServices {
   String? appId;
   String? secretKey;
   SvaraEventHandler? _eventHandler;
-  Timer? _pingTimer;
-  Timer? _pongTimeoutTimer;
+
 
   bool audioOnly = false;
   factory SvaraServices() {
@@ -104,27 +103,8 @@ class SvaraServices {
 
   void _cleanup() {
     WakelockPlus.disable();
-
-    _pingTimer?.cancel();
-    _pongTimeoutTimer?.cancel();
-    _pingTimer = null;
-    _pongTimeoutTimer = null;
   }
 
-  void _startPingPong() {
-    _pingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      _sendPing();
-    });
-  }
-
-  void _sendPing() {
-    print('Sending ping');
-    _send(SvaraSyncType.ping, {});
-    _pongTimeoutTimer = Timer(const Duration(seconds: 10), () {
-      print('Pong not received. Closing connection.');
-      leaveRoom("No response from Server");
-    });
-  }
 
   void endOperations() {
     try {

@@ -19,5 +19,3 @@ export 'src/svara/svara_event_handler.dart';
 export 'src/svara/svara_services.dart';
 export 'src/svara/svara_user_data.dart';
 
-// Export logging utilities
-export 'src/utils/logging_interceptor.dart';
