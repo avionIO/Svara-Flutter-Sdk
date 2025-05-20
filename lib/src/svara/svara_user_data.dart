@@ -1,5 +1,6 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
+/// Represents user data stored in Svara.
 class SvaraUserData {
   String svaraUserId;
   Map<String, dynamic> userData; // Wrap userData with RxMap

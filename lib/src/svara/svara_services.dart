@@ -320,7 +320,7 @@ class SvaraServices {
     print("Consumer $consumer \n Arguments : ${arguments}");
 
     print('New consumer created: ${consumer.toString()}');
-    ScalabilityMode scalabilityMode = ScalabilityMode.parse(
+    ScalabilityMode.parse(
         consumer.rtpParameters.encodings.first.scalabilityMode);
     if (consumer.kind == 'video') {
       final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
@@ -432,7 +432,7 @@ class SvaraServices {
     localRenderer.srcObject = _localStream;
 
     _eventHandler!
-        .updateVideoRender(svaraUserData!.svaraUserId ?? "", localRenderer);
+        .updateVideoRender(svaraUserData?.svaraUserId ?? "", localRenderer);
 
     // Produce video
     _sendTransport!.produce(

@@ -11,7 +11,6 @@
 /// Author: Arpa
 /// Version: 1.0.0
 
-library svara_flutter_sdk;
 
 // Export svara module
 export 'src/svara/svara_collection.dart';
