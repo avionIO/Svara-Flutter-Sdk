@@ -1,6 +1,7 @@
 // File: test/svara_services_test.dart
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_webrtc/src/native/rtc_video_renderer_impl.dart';
 import 'package:svara_flutter_sdk/svara_flutter_sdk.dart'; // Public API export including SvaraServices
 
 /// A dummy implementation of SvaraEventHandler for testing purposes.
@@ -94,6 +95,16 @@ class DummySvaraEventHandler implements SvaraEventHandler {
     print("Received message: ${json.encode(data)}");
     // TODO: Process the message data as per application requirements.
   }
+
+  @override
+  void onUserCameraToggled(String svaraUid, bool cameraOn) {
+    // TODO: implement onUserCameraToggled
+  }
+
+  @override
+  void updateVideoRender(String svaraUid, RTCVideoRenderer renderer) {
+    // TODO: implement updateVideoRender
+  }
 }
 
 void main() {
@@ -120,7 +131,8 @@ void main() {
       // Force appId to null to simulate uninitialized service.
       services.appId = null;
       expect(
-        () => services.joinRoom('roomId', {'name': 'testUser'}, true, true),
+        () => services.joinRoom(
+            'roomId', {'name': 'testUser'}, true, true, false, false),
         throwsA(equals("Create the Svara Service")),
       );
     });
