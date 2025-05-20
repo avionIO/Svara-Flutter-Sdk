@@ -24,7 +24,6 @@ class SvaraServices {
   String? secretKey;
   SvaraEventHandler? _eventHandler;
 
-
   bool audioOnly = false;
   factory SvaraServices() {
     return _instance;
@@ -104,7 +103,6 @@ class SvaraServices {
   void _cleanup() {
     WakelockPlus.disable();
   }
-
 
   void endOperations() {
     try {
