@@ -1,5 +1,11 @@
 ## 0.0.3 - 2025-05-20
 
+### Video Calling bugs solved
+- Added enable vide
+- Made little modular
+
+## 0.0.3 - 2025-05-20
+
 ### Video Calling Implemented
 - Added video Calling Option
 
