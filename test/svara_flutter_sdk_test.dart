@@ -20,19 +20,16 @@ class DummySvaraEventHandler implements SvaraEventHandler {
   void onRoomCreated(String roomId) {
     roomCreatedCalled = true;
     // Simulate some processing logic
-    print("Room created with ID: $roomId");
   }
 
   @override
   void onUserJoined(SvaraUserData userData) {
     userJoinedCalled = true;
-    print("User joined: ${userData.svaraUserId}");
   }
 
   @override
   void onError(dynamic error, dynamic errorDetail) {
     errorCalled = true;
-    print("Error occurred: $error, detail: $errorDetail");
   }
 
   @override
@@ -42,39 +39,32 @@ class DummySvaraEventHandler implements SvaraEventHandler {
 
   @override
   void onUserLeft(String userId) {
-    print("User left: $userId");
   }
 
   @override
   void onNewUserJoined(SvaraUserData userData) {
-    print("New user joined: ${userData.svaraUserId}");
   }
 
   @override
   void onUserMuteUnmute(String userId, bool isMute) {
-    print("User $userId mute state changed to: $isMute");
   }
 
   @override
   void onUserDataChanged(SvaraUserData userData, bool isItMe) {
-    print("User data changed for ${userData.svaraUserId}, is it me? $isItMe");
   }
 
   @override
   void onWarning(dynamic warn) {
-    print("Warning: $warn");
   }
 
   @override
   void onRemoved() {
-    print("User removed from the room");
   }
 
   @override
   void onRoomEnded() {
     // Sample implementation: log the event and update state.
     roomEndedCalled = true;
-    print("Room has ended. Executing cleanup procedures.");
     // TODO: Add any additional room-ended handling logic here.
   }
 
@@ -83,7 +73,6 @@ class DummySvaraEventHandler implements SvaraEventHandler {
     // Sample implementation: log speaking status and record volume.
     userIsSpeakingCalled = true;
     lastVolume = volume;
-    print("User ${svaraUserData.svaraUserId} is speaking at volume: $volume");
     // TODO: Integrate real-time UI updates or audio feedback logic here.
   }
 
@@ -92,7 +81,6 @@ class DummySvaraEventHandler implements SvaraEventHandler {
     // Sample implementation: store and log the received message.
     messageReceivedCalled = true;
     lastMessage = data;
-    print("Received message: ${json.encode(data)}");
     // TODO: Process the message data as per application requirements.
   }
 

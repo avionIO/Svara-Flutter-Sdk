@@ -1,4 +1,4 @@
-## 0.0.3 - 2025-05-20
+## 0.0.4 - 2025-06-04
 
 ### Video Calling bugs solved
 - Added enable vide
