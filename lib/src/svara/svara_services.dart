@@ -89,7 +89,6 @@ class SvaraServices {
     this.appId = appId;
     this.secretKey = secretKey;
     this.svaraChannelType=svaraChannelType;
-    print("local renderer initialize ");
     await localRenderer.initialize();
   }
 
@@ -196,11 +195,8 @@ class SvaraServices {
       _localStream = null;
       _channel?.sink.close(normalClosure);
       _channel = null;
-      print('roomOperationEnded');
     } catch (e) {
       // EMPTY CATCH BLOCK
-
-      print('roomOperationEnded error $e');
     }
   }
 
@@ -225,7 +221,6 @@ class SvaraServices {
 
   void _onMessage(dynamic message) async {
     final decodedMessage = json.decode(message);
-    // printLongString("Received Svara Connection Response: $message");
     switch (decodedMessage[SvaraKeys.type]) {
       case SvaraSyncType.routerRtpCapabilities:
 
@@ -498,8 +493,6 @@ class SvaraServices {
 
     _eventHandler!
         .updateVideoRender(svaraUserData?.svaraUserId ?? "", localRenderer);
-
-    print("svaraRoom Started check transport stream ${videoTrack}");
     // Produce video
     _sendTransport!.produce(
       stream: _localStream!,
