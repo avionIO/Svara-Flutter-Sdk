@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:mediasfu_mediasoup_client/mediasfu_mediasoup_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:svara_flutter_sdk/src/svara/svara_event_handler.dart';
+import 'package:svara_flutter_sdk/src/svara/svara_user_role.dart';
 import 'package:svara_flutter_sdk/src/svara/svara_user_data.dart';
+import 'package:svara_flutter_sdk/src/svara/svara_channel_type.dart';
 import 'package:web_socket_channel/status.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
@@ -23,22 +25,72 @@ class SvaraServices {
   String? appId;
   String? secretKey;
   SvaraEventHandler? _eventHandler;
+  SvaraUserRole userRole= SvaraUserRole.Brodcaster;
 
+  late SvaraChannelType svaraChannelType;
   bool audioOnly = false;
   factory SvaraServices() {
     return _instance;
   }
 
-  void _setEventHandler(SvaraEventHandler eventHandler) {
+  void setEventHandler({required SvaraEventHandler eventHandler}) {
     _eventHandler = eventHandler;
   }
 
-  void create(String appId, String secretKey, SvaraEventHandler evenHandler,
-      bool audioOnly) {
+  void addUserData(Map<String,dynamic>userData){
+    ///check the role of the user
+    svaraUserData= SvaraUserData(svaraUserId: "", userData: userData, isProducer: true, isConsumer: true, isMute: false, cameraOn: true, renderer: localRenderer);
+  }
+
+  Future<void> enableVideo()async{
+
+    audioOnly= false;
+    ///Setup the local
+    Map<String, dynamic> mediaConstraints = <String, dynamic>{
+      ///Based on the room Type
+      'audio': {
+        'mandatory': {
+          'echoCancellation': true,
+          'googAutoGainControl': true,
+          'googNoiseSuppression': true,
+          'googHighpassFilter': true,
+          'latency': 0.0,
+        },
+        'optional': [],
+      },
+      'video': {
+        'mandatory': {
+          'minWidth': '160',
+          'minHeight': '120',
+          'maxWidth': '320',
+          'maxHeight': '240',
+          'maxFrameRate': '5',
+        },
+        'facingMode': 'user',
+        'optional': [],
+      },
+    };
+
+    var status = await Permission.microphone.request();
+    final camStatus = await Permission.camera.request();
+    if (status.isDenied || camStatus.isDenied) {}
+
+    _localStream =
+    await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
+
+    localRenderer.srcObject = _localStream;
+
+    _eventHandler!
+        .updateVideoRender(svaraUserData?.svaraUserId ?? "", localRenderer);
+  }
+
+  Future<void> create({required String appId,required String secretKey,
+    SvaraChannelType svaraChannelType= SvaraChannelType.TalkRoom}) async{///Set the type of call
     this.appId = appId;
-    this.audioOnly = audioOnly;
     this.secretKey = secretKey;
-    _setEventHandler(evenHandler);
+    this.svaraChannelType=svaraChannelType;
+    print("local renderer initialize ");
+    await localRenderer.initialize();
   }
 
   void _send(String type, Map<dynamic, dynamic> data) {
@@ -46,9 +98,14 @@ class SvaraServices {
     _channel?.sink.add(message);
   }
 
-  void joinRoom(String roomId, Map<String, dynamic> userData, bool isProducer,
-      bool isConsumer, bool isCameraOn, bool isMute) {
-    localRenderer.initialize();
+  /**
+   * Only for Svara Channel Type StageCast and TalkStream
+   */
+  void setUserProfile({required SvaraUserRole userRole}){
+    this.userRole= userRole;
+  }
+
+  void joinRoom({required String roomId}) {
     WakelockPlus.enable();
 
     if (appId != null) {
@@ -56,12 +113,30 @@ class SvaraServices {
         Uri.parse(serverSvaraUrl),
         protocols: [appId!, secretKey!],
       );
+
+      bool isConsumer= true;
+      bool isProducer= true;
+      switch (svaraChannelType) {
+        case SvaraChannelType.StageCast:
+          isConsumer = userRole != SvaraUserRole.Brodcaster;
+          isProducer = userRole != SvaraUserRole.Audience;
+          break;
+
+        case SvaraChannelType.TalkStream:
+          isProducer = userRole != SvaraUserRole.Audience;
+          break;
+
+        default:
+        // For other channel types, defaults stay true
+          break;
+      }
+
       Map<String, dynamic> data = {
         SvaraKeys.roomId: roomId,
-        SvaraKeys.userData: userData,
-        SvaraKeys.isMute: isMute,
-        SvaraKeys.cameraOn: isCameraOn,
-        SvaraKeys.isConsumer: isConsumer,
+        SvaraKeys.userData: svaraUserData?.userData,
+        SvaraKeys.isMute: false,
+        SvaraKeys.cameraOn: true,
+        SvaraKeys.isConsumer: isConsumer ,
         SvaraKeys.isProducer: isProducer,
       };
       _send(SvaraSyncType.joinRoom, data);
@@ -71,17 +146,16 @@ class SvaraServices {
     }
   }
 
-  void createRoom(Map<String, dynamic> userData) {
-    localRenderer.initialize();
+  void createRoom() {
     WakelockPlus.enable();
-
-    if (appId != null) {
+    userRole = SvaraUserRole.Brodcaster;
+    if (appId != null&&secretKey!=null) {
       _channel = WebSocketChannel.connect(
         Uri.parse(serverSvaraUrl),
         protocols: [appId!, secretKey!],
       );
       Map<String, dynamic> data = {
-        SvaraKeys.userData: userData,
+        SvaraKeys.userData: svaraUserData?.userData,
       };
       _send(SvaraSyncType.createRoom, data);
       _channel!.stream.listen(
@@ -102,6 +176,8 @@ class SvaraServices {
     WakelockPlus.disable();
   }
 
+
+
   void endOperations() {
     try {
       _cleanup();
@@ -120,8 +196,11 @@ class SvaraServices {
       _localStream = null;
       _channel?.sink.close(normalClosure);
       _channel = null;
+      print('roomOperationEnded');
     } catch (e) {
       // EMPTY CATCH BLOCK
+
+      print('roomOperationEnded error $e');
     }
   }
 
@@ -131,8 +210,8 @@ class SvaraServices {
   }
 
   void _manageRoomEnded() {
-    _eventHandler!.onRoomEnded();
     endOperations();
+    _eventHandler!.onRoomEnded();
   }
 
   void removeUser(String removingUserId) {
@@ -150,8 +229,8 @@ class SvaraServices {
     switch (decodedMessage[SvaraKeys.type]) {
       case SvaraSyncType.routerRtpCapabilities:
 
-        ///Receives Rtp Capabilities from serve
-        ///load it into the device and send device sctpCapabilities with weather producing or consuming
+      ///Receives Rtp Capabilities from serve
+      ///load it into the device and send device sctpCapabilities with weather producing or consuming
         await _setRouterRtpCapabilities(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.createdRoom:
@@ -165,18 +244,18 @@ class SvaraServices {
         break;
       case SvaraSyncType.createdTransport:
 
-        ///Called when a producerTransport is created
+      ///Called when a producerTransport is created
         await _connectingTransport(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.connectedConsumerTransport:
 
-        ///Called when a consumerTransport is created
+      ///Called when a consumerTransport is created
         await _consumedProducers(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.connectedProducerTransport:
 
-        ///Called when a ProducerTransport is connected
-        // _produced();
+      ///Called when a ProducerTransport is connected
+      // _produced();
         break;
       case SvaraSyncType.usersList:
         _manageUserList(decodedMessage[SvaraKeys.data]);
@@ -293,12 +372,13 @@ class SvaraServices {
 
   void endRoom() {
     _send(SvaraSyncType.endRoom, {});
+    endOperations();
   }
 
   Future<void> _setRouterRtpCapabilities(Map<String, dynamic> data) async {
     try {
       var routerRtpCapabilities =
-          RtpCapabilities.fromMap(data[SvaraKeys.routerRtpCapabilities]);
+      RtpCapabilities.fromMap(data[SvaraKeys.routerRtpCapabilities]);
       await device.load(routerRtpCapabilities: routerRtpCapabilities);
 
       Map<String, dynamic> createTransportData = {
@@ -320,7 +400,7 @@ class SvaraServices {
       final MediaStreamTrack track = consumer.track;
 
       final MediaStream remoteStream =
-          await rtc.createLocalMediaStream('remote');
+      await rtc.createLocalMediaStream('remote');
       await remoteStream.addTrack(track);
       _remoteRenderer.srcObject = remoteStream;
 
@@ -353,7 +433,7 @@ class SvaraServices {
     var status = await Permission.microphone.request();
     if (status.isDenied) {}
     _localStream =
-        await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
+    await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
 
     final MediaStreamTrack track = _localStream!.getAudioTracks().first;
     localRenderer.srcObject = _localStream;
@@ -378,6 +458,7 @@ class SvaraServices {
   Future<void> _produceCamera() async {
     // Produce our webcam video.
     Map<String, dynamic> mediaConstraints = <String, dynamic>{
+      ///Based on the room Type
       'audio': {
         'mandatory': {
           'echoCancellation': true,
@@ -406,7 +487,7 @@ class SvaraServices {
     if (status.isDenied || camStatus.isDenied) {}
 
     _localStream =
-        await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
+    await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
 
     _localStream!.getVideoTracks().first.enabled = svaraUserData!.cameraOn;
 
@@ -418,6 +499,7 @@ class SvaraServices {
     _eventHandler!
         .updateVideoRender(svaraUserData?.svaraUserId ?? "", localRenderer);
 
+    print("svaraRoom Started check transport stream ${videoTrack}");
     // Produce video
     _sendTransport!.produce(
       stream: _localStream!,
@@ -428,6 +510,8 @@ class SvaraServices {
       },
       source: 'webcam',
     );
+
+    ///based on the type of room
 
     var producerCodecOptions = ProducerCodecOptions(
         opusStereo: 0,

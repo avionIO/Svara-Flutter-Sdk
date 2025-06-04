@@ -16,3 +16,5 @@ export 'src/svara/svara_collection.dart';
 export 'src/svara/svara_event_handler.dart';
 export 'src/svara/svara_services.dart';
 export 'src/svara/svara_user_data.dart';
+export 'src/svara/svara_channel_type.dart';
+export 'src/svara/svara_user_role.dart';

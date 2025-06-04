@@ -122,7 +122,7 @@ void main() {
 
     test('Create Service Sets Credentials', () {
       // Initialize the service with appId, secretKey, and an event handler.
-      services.create('testAppId', 'testSecretKey', dummyHandler, false);
+      services.create(appId: 'testAppId', secretKey: "testScretKey");
       expect(services.appId, equals('testAppId'));
       expect(services.secretKey, equals('testSecretKey'));
     });
@@ -132,7 +132,7 @@ void main() {
       services.appId = null;
       expect(
         () => services.joinRoom(
-            'roomId', {'name': 'testUser'}, true, true, false, false),
+           roomId:  'roomId', ),
         throwsA(equals("Create the Svara Service")),
       );
     });
@@ -141,7 +141,7 @@ void main() {
       // Similar test for createRoom.
       services.appId = null;
       expect(
-        () => services.createRoom({'name': 'testUser'}),
+        () => services.createRoom(),
         throwsA(equals("Create the Svara Service")),
       );
     });

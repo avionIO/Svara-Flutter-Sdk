@@ -1,0 +1,4 @@
+enum SvaraUserRole {
+  Brodcaster,
+  Audience
+}
