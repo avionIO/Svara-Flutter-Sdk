@@ -1,3 +1,8 @@
+## 0.0.5 - 2025-07-01
+
+### Website Calling issue solved
+
+
 ## 0.0.4 - 2025-06-04
 
 ### Video Calling bugs solved
