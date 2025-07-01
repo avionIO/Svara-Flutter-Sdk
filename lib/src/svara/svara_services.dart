@@ -11,6 +11,9 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'svara_collection.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:web/web.dart' as web;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:js_util' as js_util;
 
 class SvaraServices {
   static final SvaraServices _instance = SvaraServices._internal();
@@ -389,19 +392,32 @@ class SvaraServices {
   void _consumerCallback(Consumer consumer, var arguments) async {
     ScalabilityMode.parse(
         consumer.rtpParameters.encodings.first.scalabilityMode);
-    if (consumer.kind == 'video') {
-      final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
-      await _remoteRenderer.initialize();
-      final MediaStreamTrack track = consumer.track;
+    final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
+    await _remoteRenderer.initialize();
+    final MediaStreamTrack track = consumer.track;
 
-      final MediaStream remoteStream =
-      await rtc.createLocalMediaStream('remote');
-      await remoteStream.addTrack(track);
+    final MediaStream remoteStream =
+    await rtc.createLocalMediaStream('remote');
+    await remoteStream.addTrack(track);
+    if (consumer.kind == 'video') {
+
       _remoteRenderer.srcObject = remoteStream;
 
       _eventHandler!.updateVideoRender(
           consumer.appData[SvaraKeys.svaraUserId] ?? "", _remoteRenderer);
       // You should now store or display this renderer in your UI
+    }else if(consumer.kind=='audio'){
+      if (kIsWeb) {
+        final web.HTMLAudioElement audioElement = web.HTMLAudioElement()
+          ..autoplay = true
+          ..controls = false;
+        final jsStream = js_util.getProperty(remoteStream, 'jsStream');
+        js_util.setProperty(audioElement, 'srcObject', jsStream);
+
+        web.document.body?.append(audioElement);
+      }else {
+        print("Audio stream received on mobile; playback handled natively.");
+      }
     }
   }
 
