@@ -28,7 +28,7 @@ class SvaraServices {
   String? appId;
   String? secretKey;
   SvaraEventHandler? _eventHandler;
-  SvaraUserRole userRole= SvaraUserRole.Brodcaster;
+  SvaraUserRole userRole = SvaraUserRole.Brodcaster;
 
   late SvaraChannelType svaraChannelType;
   bool audioOnly = false;
@@ -40,14 +40,21 @@ class SvaraServices {
     _eventHandler = eventHandler;
   }
 
-  void addUserData(Map<String,dynamic>userData){
+  void addUserData(Map<String, dynamic> userData) {
     ///check the role of the user
-    svaraUserData= SvaraUserData(svaraUserId: "", userData: userData, isProducer: true, isConsumer: true, isMute: false, cameraOn: true, renderer: localRenderer);
+    svaraUserData = SvaraUserData(
+        svaraUserId: "",
+        userData: userData,
+        isProducer: true,
+        isConsumer: true,
+        isMute: false,
+        cameraOn: true,
+        renderer: localRenderer);
   }
 
-  Future<void> enableVideo()async{
+  Future<void> enableVideo() async {
+    audioOnly = false;
 
-    audioOnly= false;
     ///Setup the local
     Map<String, dynamic> mediaConstraints = <String, dynamic>{
       ///Based on the room Type
@@ -79,7 +86,7 @@ class SvaraServices {
     if (status.isDenied || camStatus.isDenied) {}
 
     _localStream =
-    await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
+        await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
 
     localRenderer.srcObject = _localStream;
 
@@ -87,11 +94,14 @@ class SvaraServices {
         .updateVideoRender(svaraUserData?.svaraUserId ?? "", localRenderer);
   }
 
-  Future<void> create({required String appId,required String secretKey,
-    SvaraChannelType svaraChannelType= SvaraChannelType.TalkRoom}) async{///Set the type of call
+  Future<void> create(
+      {required String appId,
+      required String secretKey,
+      SvaraChannelType svaraChannelType = SvaraChannelType.TalkRoom}) async {
+    ///Set the type of call
     this.appId = appId;
     this.secretKey = secretKey;
-    this.svaraChannelType=svaraChannelType;
+    this.svaraChannelType = svaraChannelType;
     await localRenderer.initialize();
   }
 
@@ -103,8 +113,8 @@ class SvaraServices {
   /**
    * Only for Svara Channel Type StageCast and TalkStream
    */
-  void setUserProfile({required SvaraUserRole userRole}){
-    this.userRole= userRole;
+  void setUserProfile({required SvaraUserRole userRole}) {
+    this.userRole = userRole;
   }
 
   void joinRoom({required String roomId}) {
@@ -116,8 +126,8 @@ class SvaraServices {
         protocols: [appId!, secretKey!],
       );
 
-      bool isConsumer= true;
-      bool isProducer= true;
+      bool isConsumer = true;
+      bool isProducer = true;
       switch (svaraChannelType) {
         case SvaraChannelType.StageCast:
           isConsumer = userRole != SvaraUserRole.Brodcaster;
@@ -129,7 +139,7 @@ class SvaraServices {
           break;
 
         default:
-        // For other channel types, defaults stay true
+          // For other channel types, defaults stay true
           break;
       }
 
@@ -138,7 +148,7 @@ class SvaraServices {
         SvaraKeys.userData: svaraUserData?.userData,
         SvaraKeys.isMute: false,
         SvaraKeys.cameraOn: true,
-        SvaraKeys.isConsumer: isConsumer ,
+        SvaraKeys.isConsumer: isConsumer,
         SvaraKeys.isProducer: isProducer,
       };
       _send(SvaraSyncType.joinRoom, data);
@@ -151,7 +161,7 @@ class SvaraServices {
   void createRoom() {
     WakelockPlus.enable();
     userRole = SvaraUserRole.Brodcaster;
-    if (appId != null&&secretKey!=null) {
+    if (appId != null && secretKey != null) {
       _channel = WebSocketChannel.connect(
         Uri.parse(serverSvaraUrl),
         protocols: [appId!, secretKey!],
@@ -177,8 +187,6 @@ class SvaraServices {
   void _cleanup() {
     WakelockPlus.disable();
   }
-
-
 
   void endOperations() {
     try {
@@ -227,8 +235,8 @@ class SvaraServices {
     switch (decodedMessage[SvaraKeys.type]) {
       case SvaraSyncType.routerRtpCapabilities:
 
-      ///Receives Rtp Capabilities from serve
-      ///load it into the device and send device sctpCapabilities with weather producing or consuming
+        ///Receives Rtp Capabilities from serve
+        ///load it into the device and send device sctpCapabilities with weather producing or consuming
         await _setRouterRtpCapabilities(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.createdRoom:
@@ -242,18 +250,18 @@ class SvaraServices {
         break;
       case SvaraSyncType.createdTransport:
 
-      ///Called when a producerTransport is created
+        ///Called when a producerTransport is created
         await _connectingTransport(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.connectedConsumerTransport:
 
-      ///Called when a consumerTransport is created
+        ///Called when a consumerTransport is created
         await _consumedProducers(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.connectedProducerTransport:
 
-      ///Called when a ProducerTransport is connected
-      // _produced();
+        ///Called when a ProducerTransport is connected
+        // _produced();
         break;
       case SvaraSyncType.usersList:
         _manageUserList(decodedMessage[SvaraKeys.data]);
@@ -376,7 +384,7 @@ class SvaraServices {
   Future<void> _setRouterRtpCapabilities(Map<String, dynamic> data) async {
     try {
       var routerRtpCapabilities =
-      RtpCapabilities.fromMap(data[SvaraKeys.routerRtpCapabilities]);
+          RtpCapabilities.fromMap(data[SvaraKeys.routerRtpCapabilities]);
       await device.load(routerRtpCapabilities: routerRtpCapabilities);
 
       Map<String, dynamic> createTransportData = {
@@ -396,17 +404,15 @@ class SvaraServices {
     await _remoteRenderer.initialize();
     final MediaStreamTrack track = consumer.track;
 
-    final MediaStream remoteStream =
-    await rtc.createLocalMediaStream('remote');
+    final MediaStream remoteStream = await rtc.createLocalMediaStream('remote');
     await remoteStream.addTrack(track);
     if (consumer.kind == 'video') {
-
       _remoteRenderer.srcObject = remoteStream;
 
       _eventHandler!.updateVideoRender(
           consumer.appData[SvaraKeys.svaraUserId] ?? "", _remoteRenderer);
       // You should now store or display this renderer in your UI
-    }else if(consumer.kind=='audio'){
+    } else if (consumer.kind == 'audio') {
       if (kIsWeb) {
         final web.HTMLAudioElement audioElement = web.HTMLAudioElement()
           ..autoplay = true
@@ -415,7 +421,7 @@ class SvaraServices {
         js_util.setProperty(audioElement, 'srcObject', jsStream);
 
         web.document.body?.append(audioElement);
-      }else {
+      } else {
         print("Audio stream received on mobile; playback handled natively.");
       }
     }
@@ -444,7 +450,7 @@ class SvaraServices {
     var status = await Permission.microphone.request();
     if (status.isDenied) {}
     _localStream =
-    await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
+        await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
 
     final MediaStreamTrack track = _localStream!.getAudioTracks().first;
     localRenderer.srcObject = _localStream;
@@ -498,7 +504,7 @@ class SvaraServices {
     if (status.isDenied || camStatus.isDenied) {}
 
     _localStream =
-    await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
+        await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
 
     _localStream!.getVideoTracks().first.enabled = svaraUserData!.cameraOn;
 

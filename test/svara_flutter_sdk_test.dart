@@ -38,28 +38,22 @@ class DummySvaraEventHandler implements SvaraEventHandler {
   }
 
   @override
-  void onUserLeft(String userId) {
-  }
+  void onUserLeft(String userId) {}
 
   @override
-  void onNewUserJoined(SvaraUserData userData) {
-  }
+  void onNewUserJoined(SvaraUserData userData) {}
 
   @override
-  void onUserMuteUnmute(String userId, bool isMute) {
-  }
+  void onUserMuteUnmute(String userId, bool isMute) {}
 
   @override
-  void onUserDataChanged(SvaraUserData userData, bool isItMe) {
-  }
+  void onUserDataChanged(SvaraUserData userData, bool isItMe) {}
 
   @override
-  void onWarning(dynamic warn) {
-  }
+  void onWarning(dynamic warn) {}
 
   @override
-  void onRemoved() {
-  }
+  void onRemoved() {}
 
   @override
   void onRoomEnded() {
@@ -120,7 +114,8 @@ void main() {
       services.appId = null;
       expect(
         () => services.joinRoom(
-           roomId:  'roomId', ),
+          roomId: 'roomId',
+        ),
         throwsA(equals("Create the Svara Service")),
       );
     });

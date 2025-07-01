@@ -1,4 +1,1 @@
-enum SvaraUserRole {
-  Brodcaster,
-  Audience
-}
+enum SvaraUserRole { Brodcaster, Audience }
