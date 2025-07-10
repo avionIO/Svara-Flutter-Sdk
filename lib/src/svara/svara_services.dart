@@ -7,7 +7,8 @@ import 'package:svara_flutter_sdk/src/svara/svara_event_handler.dart';
 import 'package:svara_flutter_sdk/src/svara/svara_user_role.dart';
 import 'package:svara_flutter_sdk/src/svara/svara_user_data.dart';
 import 'package:svara_flutter_sdk/src/svara/svara_channel_type.dart';
-import 'package:svara_flutter_sdk/src/svara/web_audio_player_web.dart' show playWebAudio;
+import 'package:svara_flutter_sdk/src/svara/web_audio_player_web.dart'
+    show playWebAudio;
 import 'package:web_socket_channel/status.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
