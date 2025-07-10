@@ -1,3 +1,8 @@
+## 0.0.6 - 2025-07-10
+
+### Website Calling upgraded
+
+
 ## 0.0.5 - 2025-07-01
 
 ### Website Calling issue solved

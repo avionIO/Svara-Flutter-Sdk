@@ -18,7 +18,6 @@ dependencies:
   wakelock_plus: ^1.3.2
   mediasfu_mediasoup_client: ^0.0.7
   web: ^1.1.1
-  
 
 dev_dependencies:
   flutter_test:
