@@ -1,4 +1,4 @@
-## 0.0.6 - 2025-07-10
+## 0.0.7 - 2025-07-11
 
 ### playWebAudio updated to the proper format
 
