@@ -1,3 +1,8 @@
+## 0.0.8 - 2025-07-11
+
+### playWebAudio web error fixed
+
+
 ## 0.0.7 - 2025-07-11
 
 ### playWebAudio updated to the proper format
