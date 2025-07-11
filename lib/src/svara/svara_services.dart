@@ -1,15 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:js_interop';
 import 'package:mediasfu_mediasoup_client/mediasfu_mediasoup_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:svara_flutter_sdk/src/svara/svara_event_handler.dart';
 import 'package:svara_flutter_sdk/src/svara/svara_user_role.dart';
 import 'package:svara_flutter_sdk/src/svara/svara_user_data.dart';
 import 'package:svara_flutter_sdk/src/svara/svara_channel_type.dart';
-import 'package:svara_flutter_sdk/src/svara/web_audio_player_web.dart'
-    show playWebAudio;
 import 'package:web_socket_channel/status.dart';
+import 'play_audio/play_audio.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'svara_collection.dart';
@@ -415,7 +413,7 @@ class SvaraServices {
       // You should now store or display this renderer in your UI
     } else if (consumer.kind == 'audio') {
       if (kIsWeb) {
-        playWebAudio(remoteStream.toJSBox);
+        playWebAudio(remoteStream);
       } else {
         print("Audio stream received on mobile; playback handled natively.");
       }
