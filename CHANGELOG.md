@@ -1,3 +1,8 @@
+## 0.0.9 - 2025-07-22
+
+### Playing in Brodcaster in channel category TalkStream  
+
+
 ## 0.0.8 - 2025-07-11
 
 ### playWebAudio web error fixed

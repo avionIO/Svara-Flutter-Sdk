@@ -40,12 +40,29 @@ class SvaraServices {
   }
 
   void addUserData(Map<String, dynamic> userData) {
+    bool isConsumer = true;
+    bool isProducer = true;
+    switch (svaraChannelType) {
+      case SvaraChannelType.StageCast:
+        isConsumer = userRole != SvaraUserRole.Brodcaster;
+        isProducer = userRole != SvaraUserRole.Audience;
+        break;
+
+      case SvaraChannelType.TalkStream:
+        isProducer = userRole != SvaraUserRole.Audience;
+        break;
+
+      default:
+        // For other channel types, defaults stay true
+        break;
+    }
+
     ///check the role of the user
     svaraUserData = SvaraUserData(
         svaraUserId: "",
         userData: userData,
-        isProducer: true,
-        isConsumer: true,
+        isProducer: isProducer,
+        isConsumer: isConsumer,
         isMute: false,
         cameraOn: true,
         renderer: localRenderer);
@@ -93,15 +110,14 @@ class SvaraServices {
         .updateVideoRender(svaraUserData?.svaraUserId ?? "", localRenderer);
   }
 
-  Future<void> create(
+  void create(
       {required String appId,
       required String secretKey,
-      SvaraChannelType svaraChannelType = SvaraChannelType.TalkRoom}) async {
+      SvaraChannelType svaraChannelType = SvaraChannelType.TalkRoom}) {
     ///Set the type of call
     this.appId = appId;
     this.secretKey = secretKey;
     this.svaraChannelType = svaraChannelType;
-    await localRenderer.initialize();
   }
 
   void _send(String type, Map<dynamic, dynamic> data) {
@@ -116,8 +132,9 @@ class SvaraServices {
     this.userRole = userRole;
   }
 
-  void joinRoom({required String roomId}) {
+  Future<void> joinRoom({required String roomId}) async {
     WakelockPlus.enable();
+    await localRenderer.initialize();
 
     if (appId != null) {
       _channel = WebSocketChannel.connect(
@@ -125,30 +142,13 @@ class SvaraServices {
         protocols: [appId!, secretKey!],
       );
 
-      bool isConsumer = true;
-      bool isProducer = true;
-      switch (svaraChannelType) {
-        case SvaraChannelType.StageCast:
-          isConsumer = userRole != SvaraUserRole.Brodcaster;
-          isProducer = userRole != SvaraUserRole.Audience;
-          break;
-
-        case SvaraChannelType.TalkStream:
-          isProducer = userRole != SvaraUserRole.Audience;
-          break;
-
-        default:
-          // For other channel types, defaults stay true
-          break;
-      }
-
       Map<String, dynamic> data = {
         SvaraKeys.roomId: roomId,
         SvaraKeys.userData: svaraUserData?.userData,
         SvaraKeys.isMute: false,
         SvaraKeys.cameraOn: true,
-        SvaraKeys.isConsumer: isConsumer,
-        SvaraKeys.isProducer: isProducer,
+        SvaraKeys.isConsumer: svaraUserData?.isConsumer,
+        SvaraKeys.isProducer: svaraUserData?.isProducer,
       };
       _send(SvaraSyncType.joinRoom, data);
       _channel!.stream.listen(_onMessage);
@@ -157,8 +157,10 @@ class SvaraServices {
     }
   }
 
-  void createRoom() {
+  Future<void> createRoom() async {
     WakelockPlus.enable();
+    await localRenderer.initialize();
+
     userRole = SvaraUserRole.Brodcaster;
     if (appId != null && secretKey != null) {
       _channel = WebSocketChannel.connect(
@@ -373,6 +375,10 @@ class SvaraServices {
 
   void getUserList() {
     _send(SvaraSyncType.getUsersList, {});
+  }
+
+  Future<void> setSpeakerphoneOn(bool speakerOn) async {
+    await Helper.setSpeakerphoneOn(speakerOn);
   }
 
   void endRoom() {
