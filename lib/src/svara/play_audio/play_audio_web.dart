@@ -1,5 +1,4 @@
-import 'dart:js_interop';
-import 'dart:js_interop_unsafe';
+import 'dart:js_util' as js_util;
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:web/web.dart' as web;
 
@@ -8,11 +7,9 @@ void playWebAudio(MediaStream remoteStream) {
     ..autoplay = true
     ..controls = false;
 
-  // Get 'jsStream' property from the remoteStream
-  final jsStream = (remoteStream as JSObject).getProperty('jsStream'.toJS);
+  final jsMediaStream = js_util.getProperty(remoteStream, 'jsStream');
 
-  // Set it as srcObject on the audio element
-  (audioElement as JSObject).setProperty('srcObject'.toJS, jsStream);
+  js_util.setProperty(audioElement, 'srcObject', jsMediaStream);
 
   web.document.body?.append(audioElement);
 }

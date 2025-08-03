@@ -1,3 +1,7 @@
+## 0.1.0 - 2025-08-03
+
+### TalkRoom enable video issue solved  
+
 ## 0.0.9 - 2025-07-22
 
 ### Playing in Brodcaster in channel category TalkStream  

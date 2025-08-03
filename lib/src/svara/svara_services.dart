@@ -69,6 +69,8 @@ class SvaraServices {
   }
 
   Future<void> enableVideo() async {
+    await localRenderer.initialize();
+
     audioOnly = false;
 
     ///Setup the local
