@@ -1,4 +1,4 @@
-## 0.1.0 - 2025-08-03
+## 0.1.1 - 2025-11-24
 
 ### Video Streaming Issue in web solved
 ### Video Streaming Quality improved
