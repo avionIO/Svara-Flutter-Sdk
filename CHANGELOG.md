@@ -1,5 +1,11 @@
 ## 0.1.0 - 2025-08-03
 
+### Video Streaming Issue in web solved
+### Video Streaming Quality improved
+
+
+## 0.1.0 - 2025-08-03
+
 ### TalkRoom enable video issue solved  
 
 ## 0.0.9 - 2025-07-22

@@ -136,6 +136,7 @@ class SvaraServices {
 
   Future<void> joinRoom({required String roomId}) async {
     WakelockPlus.enable();
+    stopMedia();
     await localRenderer.initialize();
 
     if (appId != null) {
@@ -161,8 +162,8 @@ class SvaraServices {
 
   Future<void> createRoom() async {
     WakelockPlus.enable();
+    stopMedia();
     await localRenderer.initialize();
-
     userRole = SvaraUserRole.Brodcaster;
     if (appId != null && secretKey != null) {
       _channel = WebSocketChannel.connect(
@@ -199,19 +200,31 @@ class SvaraServices {
       _recTransport?.close();
       _sendTransport = null;
       _recTransport = null;
-      // Stop all media tracks
-      _localStream?.getTracks().forEach((track) {
-        track.stop();
-      });
-      localRenderer.dispose();
-      localRenderer = rtc.RTCVideoRenderer();
-      _localStream?.dispose();
-      _localStream = null;
+      stopMedia();
       _channel?.sink.close(normalClosure);
       _channel = null;
     } catch (e) {
       // EMPTY CATCH BLOCK
+      print('endOperations error: $e');
     }
+  }
+
+  void stopMedia() {
+    // Stop all media tracks
+    if (_localStream != null) {
+      _localStream?.getTracks().forEach((track) {
+        track.stop();
+      });
+      _localStream!.dispose();
+      _localStream = null;
+    }
+
+    try {
+      localRenderer.dispose();
+    } catch (e) {
+      print('localRenderer.dispose() failed: $e');
+    }
+    localRenderer = rtc.RTCVideoRenderer();
   }
 
   void leaveRoom(String reason) {
@@ -264,7 +277,7 @@ class SvaraServices {
       case SvaraSyncType.connectedProducerTransport:
 
         ///Called when a ProducerTransport is connected
-        // _produced();
+        _produced();
         break;
       case SvaraSyncType.usersList:
         _manageUserList(decodedMessage[SvaraKeys.data]);
@@ -307,6 +320,8 @@ class SvaraServices {
         break;
     }
   }
+
+  void _produced() {}
 
   void _manageReceiveMessage(Map<String, dynamic> data) {
     _eventHandler!.receivedMessage(data);
@@ -422,8 +437,6 @@ class SvaraServices {
     } else if (consumer.kind == 'audio') {
       if (kIsWeb) {
         playWebAudio(remoteStream);
-      } else {
-        print("Audio stream received on mobile; playback handled natively.");
       }
     }
   }
@@ -489,14 +502,16 @@ class SvaraServices {
       },
       'video': {
         'mandatory': {
-          'minWidth': '160',
-          'minHeight': '120',
-          'maxWidth': '320',
-          'maxHeight': '240',
-          'maxFrameRate': '5',
+          'minWidth': '640',
+          'minHeight': '480',
+          'maxWidth': '1280',
+          'maxHeight': '720',
+          'maxFrameRate': '15',
         },
         'facingMode': 'user',
-        'optional': [],
+        'optional': [
+          {'orientation': 'landscape'},
+        ],
       },
     };
 
@@ -513,21 +528,8 @@ class SvaraServices {
     final MediaStreamTrack videoTrack = _localStream!.getVideoTracks().first;
 
     localRenderer.srcObject = _localStream;
-
     _eventHandler!
         .updateVideoRender(svaraUserData?.svaraUserId ?? "", localRenderer);
-    // Produce video
-    _sendTransport!.produce(
-      stream: _localStream!,
-      track: videoTrack,
-      // encodings: [RtpEncodingParameters(maxBitrate: 1000000)],
-      appData: {
-        'source': 'webcam',
-      },
-      source: 'webcam',
-    );
-
-    ///based on the type of room
 
     var producerCodecOptions = ProducerCodecOptions(
         opusStereo: 0,
@@ -544,6 +546,19 @@ class SvaraServices {
       codecOptions: producerCodecOptions,
       source: 'mic',
     );
+
+    // Produce video
+    _sendTransport!.produce(
+      stream: _localStream!,
+      track: videoTrack,
+      // encodings: [RtpEncodingParameters(maxBitrate: 800000)],
+      appData: {
+        'source': 'webcam',
+      },
+      source: 'webcam',
+    );
+
+    ///based on the type of room
   }
 
   Future<void> _connectingTransport(Map<String, dynamic> data) async {
@@ -558,12 +573,16 @@ class SvaraServices {
             SvaraKeys.transportId: _sendTransport!.id,
             SvaraKeys.dtlsParameters: data['dtlsParameters'].toMap(),
           };
+
           _send(SvaraSyncType.connectProducerTransport,
               connectProducerTransportData);
 
           data['callback']();
         } catch (error) {
           // EMPTY CATCH BLOCK
+
+          print('Error in sendTransport.connect: $error');
+
           data['errback'](error);
         }
       });
@@ -577,10 +596,13 @@ class SvaraServices {
             if (data['appData'] != null)
               SvaraKeys.appData: Map<String, dynamic>.from(data['appData'])
           };
+
           _send(SvaraSyncType.produce, produceData);
 
           data['callback'](_sendTransport!.id);
         } catch (error) {
+          print('Error in produce trensport: $error');
+
           data['errback'](error);
         }
       });
@@ -640,6 +662,7 @@ class SvaraServices {
       );
     } catch (e) {
       // EMPTY CATCH BLOCK
+      print('consume() failed: $e');
     }
   }
 
