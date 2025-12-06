@@ -99,9 +99,8 @@ class DummySvaraEventHandler implements SvaraEventHandler {
       log("User $userId mute changed to $isMute");
 
   @override
-  void onUserDataChanged(SvaraUserData userData, bool isItMe) => log(
-    "User data changed for: ${userData.svaraUserId}, is it me? $isItMe",
-  );
+  void onUserDataChanged(SvaraUserData userData, bool isItMe) =>
+      log("User data changed for: ${userData.svaraUserId}, is it me? $isItMe");
 
   @override
   void onWarning(dynamic warn) => log("Warning: $warn");
@@ -113,9 +112,8 @@ class DummySvaraEventHandler implements SvaraEventHandler {
   void onRoomEnded() => log("Room has ended");
 
   @override
-  void onUserIsSpeaking(SvaraUserData svaraUserData, int volume) => log(
-    "User ${svaraUserData.svaraUserId} is speaking with volume: $volume",
-  );
+  void onUserIsSpeaking(SvaraUserData svaraUserData, int volume) =>
+      log("User ${svaraUserData.svaraUserId} is speaking with volume: $volume");
 
   @override
   void receivedMessage(Map<String, dynamic> data) =>

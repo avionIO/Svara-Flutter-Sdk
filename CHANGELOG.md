@@ -1,4 +1,4 @@
-## 0.1.1 - 2025-11-24
+## 0.1.2 - 2025-12-06
 
 ### Video streaming in web hang issue solved
 
