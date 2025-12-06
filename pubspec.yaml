@@ -1,7 +1,7 @@
 name: svara_flutter_sdk
 description: "The provided package, SvaraServices, is a Flutter-based WebRTC (Web Real-Time Communication) service that facilitates real-time audio and video communication over WebSockets."
 version: 0.1.2
-publish_to: https://svara.live
+#publish_to: https://svara.live
 repository: https://github.com/avionIO/Svara-Flutter-Sdk
 homepage: https://github.com/avionIO/Svara-Flutter-Sdk
 
