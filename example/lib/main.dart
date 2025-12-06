@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:svara_flutter_sdk/svara_flutter_sdk.dart';
+import 'dart:developer';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,50 +74,50 @@ class _HomeScreenState extends State<HomeScreen> {
 // A simple dummy event handler for demonstration.
 class DummySvaraEventHandler implements SvaraEventHandler {
   @override
-  void onRoomCreated(String roomId) => print("Room created: $roomId");
+  void onRoomCreated(String roomId) => log("Room created: $roomId");
 
   @override
   void onUserJoined(SvaraUserData userData) =>
-      print("User joined: ${userData.svaraUserId}");
+      log("User joined: ${userData.svaraUserId}");
 
   @override
   void onError(dynamic error, dynamic errorDetail) =>
-      print("Error: $error, Detail: $errorDetail");
+      log("Error: $error, Detail: $errorDetail");
 
   @override
   void onUserGetList(List<SvaraUserData> users) {}
 
   @override
-  void onUserLeft(String userId) => print("User left: $userId");
+  void onUserLeft(String userId) => log("User left: $userId");
 
   @override
   void onNewUserJoined(SvaraUserData userData) =>
-      print("New user joined: ${userData.svaraUserId}");
+      log("New user joined: ${userData.svaraUserId}");
 
   @override
   void onUserMuteUnmute(String userId, bool isMute) =>
-      print("User $userId mute changed to $isMute");
+      log("User $userId mute changed to $isMute");
 
   @override
-  void onUserDataChanged(SvaraUserData userData, bool isItMe) => print(
+  void onUserDataChanged(SvaraUserData userData, bool isItMe) => log(
     "User data changed for: ${userData.svaraUserId}, is it me? $isItMe",
   );
 
   @override
-  void onWarning(dynamic warn) => print("Warning: $warn");
+  void onWarning(dynamic warn) => log("Warning: $warn");
 
   @override
-  void onRemoved() => print("Removed from room");
+  void onRemoved() => log("Removed from room");
 
   @override
-  void onRoomEnded() => print("Room has ended");
+  void onRoomEnded() => log("Room has ended");
 
   @override
-  void onUserIsSpeaking(SvaraUserData svaraUserData, int volume) => print(
+  void onUserIsSpeaking(SvaraUserData svaraUserData, int volume) => log(
     "User ${svaraUserData.svaraUserId} is speaking with volume: $volume",
   );
 
   @override
   void receivedMessage(Map<String, dynamic> data) =>
-      print("Received message: $data");
+      log("Received message: $data");
 }

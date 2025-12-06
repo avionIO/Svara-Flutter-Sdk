@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'package:mediasfu_mediasoup_client/mediasfu_mediasoup_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:svara_flutter_sdk/src/svara/svara_event_handler.dart';
@@ -205,7 +206,7 @@ class SvaraServices {
       _channel = null;
     } catch (e) {
       // EMPTY CATCH BLOCK
-      print('endOperations error: $e');
+      log('endOperations error: $e');
     }
   }
 
@@ -222,7 +223,7 @@ class SvaraServices {
     try {
       localRenderer.dispose();
     } catch (e) {
-      print('localRenderer.dispose() failed: $e');
+      log('localRenderer.dispose() failed: $e');
     }
     localRenderer = rtc.RTCVideoRenderer();
   }
@@ -500,19 +501,7 @@ class SvaraServices {
         },
         'optional': [],
       },
-      'video': {
-        'mandatory': {
-          'minWidth': '640',
-          'minHeight': '480',
-          'maxWidth': '1280',
-          'maxHeight': '720',
-          'maxFrameRate': '15',
-        },
-        'facingMode': 'user',
-        'optional': [
-          {'orientation': 'landscape'},
-        ],
-      },
+      'video': true,
     };
 
     var status = await Permission.microphone.request();
@@ -581,7 +570,7 @@ class SvaraServices {
         } catch (error) {
           // EMPTY CATCH BLOCK
 
-          print('Error in sendTransport.connect: $error');
+          log('Error in sendTransport.connect: $error');
 
           data['errback'](error);
         }
@@ -601,7 +590,7 @@ class SvaraServices {
 
           data['callback'](_sendTransport!.id);
         } catch (error) {
-          print('Error in produce trensport: $error');
+          log('Error in produce transport: $error');
 
           data['errback'](error);
         }
@@ -662,7 +651,7 @@ class SvaraServices {
       );
     } catch (e) {
       // EMPTY CATCH BLOCK
-      print('consume() failed: $e');
+      log('consume() failed: $e');
     }
   }
 
