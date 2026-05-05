@@ -1,3 +1,8 @@
+## 0.2.2 - 2025-05-05
+
+### added room data for managing room data
+
+
 ## 0.1.2 - 2025-12-06
 
 ### Video streaming in web hang issue solved
