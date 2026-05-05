@@ -330,8 +330,8 @@ class SvaraServices {
 
   void _produced() {}
 
-  void _manageReceiveUpdateRoomData(Map<String, dynamic>data){
-    _eventHandler!.updatadRoomData(data['type'],data['data'] );
+  void _manageReceiveUpdateRoomData(Map<String, dynamic> data) {
+    _eventHandler!.updatadRoomData(data['type'], data['data']);
   }
 
   void _manageReceiveMessage(Map<String, dynamic> data) {
@@ -343,7 +343,7 @@ class SvaraServices {
     leaveRoom(data[SvaraKeys.editor]);
   }
 
-  void updateRoomData(String type, Map<String, dynamic> data){
+  void updateRoomData(String type, Map<String, dynamic> data) {
     Map<String, dynamic> sendingData = {
       SvaraKeys.type: type,
       SvaraKeys.data: data,
@@ -351,7 +351,7 @@ class SvaraServices {
     _send(SvaraSyncType.updateRoomData, sendingData);
   }
 
-  void getRoomData(){
+  void getRoomData() {
     _send(SvaraSyncType.getRoomData, {});
   }
 
@@ -744,7 +744,6 @@ class SvaraServices {
   }
 
   void _manageReceiveRoomData(data) {
-    _eventHandler!.recievedRoomData(data );
-
+    _eventHandler!.recievedRoomData(data);
   }
 }

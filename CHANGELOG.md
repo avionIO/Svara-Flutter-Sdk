@@ -1,4 +1,4 @@
-## 0.2.2 - 2025-05-05
+## 0.2.0 - 2025-05-05
 
 ### added room data for managing room data
 

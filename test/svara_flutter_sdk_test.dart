@@ -87,6 +87,16 @@ class DummySvaraEventHandler implements SvaraEventHandler {
   void updateVideoRender(String svaraUid, RTCVideoRenderer renderer) {
     // TODO: implement updateVideoRender
   }
+
+  @override
+  void recievedRoomData(Map<String, dynamic> data) {
+    // TODO: implement recievedRoomData
+  }
+
+  @override
+  void updatadRoomData(String tag, Map<String, dynamic> data) {
+    // TODO: implement updatadRoomData
+  }
 }
 
 void main() {
