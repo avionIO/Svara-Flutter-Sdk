@@ -1,5 +1,4 @@
 // File: test/svara_services_test.dart
-import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_webrtc/src/native/rtc_video_renderer_impl.dart';
 import 'package:svara_flutter_sdk/svara_flutter_sdk.dart'; // Public API export including SvaraServices
@@ -102,7 +101,6 @@ class DummySvaraEventHandler implements SvaraEventHandler {
 void main() {
   // Group related tests for better organization.
   group('SvaraServices Tests', () {
-    final dummyHandler = DummySvaraEventHandler();
     final services = SvaraServices();
 
     test('Singleton Instance Test', () {
