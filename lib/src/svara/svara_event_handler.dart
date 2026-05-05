@@ -22,4 +22,6 @@ abstract class SvaraEventHandler {
   void onRemoved() {}
   //
   void receivedMessage(Map<String, dynamic> data) {}
+  void updatadRoomData(String tag, Map<String, dynamic> data) {}
+  void recievedRoomData(Map<String, dynamic> data) {}
 }

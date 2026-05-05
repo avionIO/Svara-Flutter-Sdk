@@ -115,6 +115,14 @@ class SvaraSyncType {
 
   static const String onUserJoined = "on_user_joined";
 
+  static const String updateRoomData = "update_room_data";
+
+  static const String onUpdatedRoomData = "on_updated_room_data";
+
+  static const String getRoomData = "get_room_data";
+
+  static const String roomData = "room_data";
+
   static const String pong = "pong";
 
   static const String ping = "ping";

@@ -265,6 +265,12 @@ class SvaraServices {
       case SvaraSyncType.onUserJoined:
         _manageOnUserJoined(decodedMessage[SvaraKeys.data]);
         break;
+      case SvaraSyncType.onUpdatedRoomData:
+        _manageReceiveUpdateRoomData(decodedMessage[SvaraKeys.data]);
+        break;
+      case SvaraSyncType.roomData:
+        _manageReceiveRoomData(decodedMessage[SvaraKeys.data]);
+        break;
       case SvaraSyncType.createdTransport:
 
         ///Called when a producerTransport is created
@@ -324,6 +330,10 @@ class SvaraServices {
 
   void _produced() {}
 
+  void _manageReceiveUpdateRoomData(Map<String, dynamic>data){
+    _eventHandler!.updatadRoomData(data['type'],data['data'] );
+  }
+
   void _manageReceiveMessage(Map<String, dynamic> data) {
     _eventHandler!.receivedMessage(data);
   }
@@ -331,6 +341,18 @@ class SvaraServices {
   void _manageRemoveMe(Map<String, dynamic> data) {
     _eventHandler!.onRemoved();
     leaveRoom(data[SvaraKeys.editor]);
+  }
+
+  void updateRoomData(String type, Map<String, dynamic> data){
+    Map<String, dynamic> sendingData = {
+      SvaraKeys.type: type,
+      SvaraKeys.data: data,
+    };
+    _send(SvaraSyncType.updateRoomData, sendingData);
+  }
+
+  void getRoomData(){
+    _send(SvaraSyncType.getRoomData, {});
   }
 
   void removeProducer() {
@@ -719,5 +741,10 @@ class SvaraServices {
       svaraUserData!.userData = userData.userData;
     }
     _eventHandler!.onUserDataChanged(userData, isItMe);
+  }
+
+  void _manageReceiveRoomData(data) {
+    _eventHandler!.recievedRoomData(data );
+
   }
 }
