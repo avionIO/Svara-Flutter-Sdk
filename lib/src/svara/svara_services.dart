@@ -54,7 +54,7 @@ class SvaraServices {
         break;
 
       default:
-        // For other channel types, defaults stay true
+      // For other channel types, defaults stay true
         break;
     }
 
@@ -105,7 +105,7 @@ class SvaraServices {
     if (status.isDenied || camStatus.isDenied) {}
 
     _localStream =
-        await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
+    await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
 
     localRenderer.srcObject = _localStream;
 
@@ -115,8 +115,8 @@ class SvaraServices {
 
   void create(
       {required String appId,
-      required String secretKey,
-      SvaraChannelType svaraChannelType = SvaraChannelType.TalkRoom}) {
+        required String secretKey,
+        SvaraChannelType svaraChannelType = SvaraChannelType.TalkRoom}) {
     ///Set the type of call
     this.appId = appId;
     this.secretKey = secretKey;
@@ -150,7 +150,7 @@ class SvaraServices {
         SvaraKeys.roomId: roomId,
         SvaraKeys.userData: svaraUserData?.userData,
         SvaraKeys.isMute: false,
-        SvaraKeys.cameraOn: true,
+        SvaraKeys.cameraOn: false,
         SvaraKeys.isConsumer: svaraUserData?.isConsumer,
         SvaraKeys.isProducer: svaraUserData?.isProducer,
       };
@@ -252,8 +252,8 @@ class SvaraServices {
     switch (decodedMessage[SvaraKeys.type]) {
       case SvaraSyncType.routerRtpCapabilities:
 
-        ///Receives Rtp Capabilities from serve
-        ///load it into the device and send device sctpCapabilities with weather producing or consuming
+      ///Receives Rtp Capabilities from serve
+      ///load it into the device and send device sctpCapabilities with weather producing or consuming
         await _setRouterRtpCapabilities(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.createdRoom:
@@ -273,17 +273,17 @@ class SvaraServices {
         break;
       case SvaraSyncType.createdTransport:
 
-        ///Called when a producerTransport is created
+      ///Called when a producerTransport is created
         await _connectingTransport(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.connectedConsumerTransport:
 
-        ///Called when a consumerTransport is created
+      ///Called when a consumerTransport is created
         await _consumedProducers(decodedMessage[SvaraKeys.data]);
         break;
       case SvaraSyncType.connectedProducerTransport:
 
-        ///Called when a ProducerTransport is connected
+      ///Called when a ProducerTransport is connected
         _produced();
         break;
       case SvaraSyncType.usersList:
@@ -429,7 +429,7 @@ class SvaraServices {
   Future<void> _setRouterRtpCapabilities(Map<String, dynamic> data) async {
     try {
       var routerRtpCapabilities =
-          RtpCapabilities.fromMap(data[SvaraKeys.routerRtpCapabilities]);
+      RtpCapabilities.fromMap(data[SvaraKeys.routerRtpCapabilities]);
       await device.load(routerRtpCapabilities: routerRtpCapabilities);
 
       Map<String, dynamic> createTransportData = {
@@ -487,7 +487,7 @@ class SvaraServices {
     var status = await Permission.microphone.request();
     if (status.isDenied) {}
     _localStream =
-        await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
+    await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
 
     final MediaStreamTrack track = _localStream!.getAudioTracks().first;
     localRenderer.srcObject = _localStream;
@@ -523,7 +523,17 @@ class SvaraServices {
         },
         'optional': [],
       },
-      'video': true,
+      'video': {
+        'mandatory': {
+          'minWidth': '160',
+          'minHeight': '120',
+          'maxWidth': '320',
+          'maxHeight': '240',
+          'maxFrameRate': '5',
+        },
+        'facingMode': 'user',
+        'optional': [],
+      }
     };
 
     var status = await Permission.microphone.request();
@@ -531,7 +541,7 @@ class SvaraServices {
     if (status.isDenied || camStatus.isDenied) {}
 
     _localStream =
-        await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
+    await rtc.navigator.mediaDevices.getUserMedia(mediaConstraints);
 
     _localStream!.getVideoTracks().first.enabled = svaraUserData!.cameraOn;
 
@@ -541,6 +551,18 @@ class SvaraServices {
     localRenderer.srcObject = _localStream;
     _eventHandler!
         .updateVideoRender(svaraUserData?.svaraUserId ?? "", localRenderer);
+
+
+    // Produce video
+    _sendTransport!.produce(
+      stream: _localStream!,
+      track: videoTrack,
+      // encodings: [RtpEncodingParameters(maxBitrate: 800000)],
+      appData: {
+        'source': 'webcam',
+      },
+      source: 'webcam',
+    );
 
     var producerCodecOptions = ProducerCodecOptions(
         opusStereo: 0,
@@ -556,17 +578,6 @@ class SvaraServices {
       },
       codecOptions: producerCodecOptions,
       source: 'mic',
-    );
-
-    // Produce video
-    _sendTransport!.produce(
-      stream: _localStream!,
-      track: videoTrack,
-      // encodings: [RtpEncodingParameters(maxBitrate: 800000)],
-      appData: {
-        'source': 'webcam',
-      },
-      source: 'webcam',
     );
 
     ///based on the type of room

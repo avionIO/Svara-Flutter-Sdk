@@ -1,3 +1,8 @@
+## 0.2.1 - 2025-05-12
+
+### produce camera issue fixed
+
+
 ## 0.2.0 - 2025-05-05
 
 ### added room data for managing room data
